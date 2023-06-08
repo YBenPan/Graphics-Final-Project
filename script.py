@@ -56,6 +56,8 @@ def run(filename):
 
     # Set ambient light
     ambient = symbols['ambient'][1:] if 'ambient' in symbols else [50, 50, 50]
+    print(symbols)
+    input()
 
     for command in commands:
         print(command)
@@ -96,6 +98,23 @@ def run(filename):
             matrix_mult( stack[-1], tmp )
             draw_lines(tmp, screen, zbuffer, color)
             tmp = []
+        elif c == 'mesh':
+            # input()
+            filename = f"{command['args'][0]}.obj"
+            vertexList = []
+            faceList = []
+            with open(filename) as file:
+                for line in file:
+                    line = line.rstrip()
+                    if line[:2] == 'v ':
+                        vertexList.append([float(coord) for coord in line[2:].split()])
+                    elif line[:2] == 'f ':
+                        faceList.append([int(vertex) - 1 for vertex in line[2:].split()])
+            add_mesh(tmp, vertexList, faceList)
+            draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
+            tmp = []
+            # input()
+
         elif c == 'move':
             tmp = make_translate(args[0], args[1], args[2])
             matrix_mult(stack[-1], tmp)

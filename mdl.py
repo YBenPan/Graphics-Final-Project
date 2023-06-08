@@ -335,16 +335,21 @@ def p_command_mesh(p):
                | MESH SYMBOL CO TEXT
                | MESH CO TEXT SYMBOL
                | MESH SYMBOL CO TEXT SYMBOL"""
+    # MESH constants : filename coord_system
     cmd = {'op':p[1], 'args' : [], 'cs':None, 'constants':None}
-    arg_start = 2
-    if isinstance(p[2], str):
+    # for i, pp in enumerate(p):
+    #     print(i, pp)
+    arg_start = 3
+    if isinstance(p[2], str) and p[2] != ':':
         cmd['constants'] = p[2]
         arg_start+= 1
     cmd['args'].append(p[arg_start])
-    if len(p) == 4 and isinstance(p[3], str):
-        cmd['cs'] = p[3]
-    if len(p) == 5 and isinstance(p[4], str):
-        cmd['cs'] = p[4]
+    # if len(p) == 5 and isinstance(p[4], str):
+    #     cmd['cs'] = p[4]
+    # if len(p) == 6 and isinstance(p[5], str):
+    #     cmd['cs'] = p[5]
+    if len(p) == arg_start + 2:
+        cmd['cs'] = p[arg_start + 1]
     commands.append(cmd)
 
 def p_save_knobs(p):
