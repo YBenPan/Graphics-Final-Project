@@ -6,9 +6,8 @@
 - [ ] vary
 - [ ] basename
 - [X] mesh
-- [ ] camera
+- [X] camera
 - [X] light
-- [ ] constants
 - [ ] save_knobs
 - [ ] tween
 - [ ] focal

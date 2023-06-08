@@ -15,12 +15,12 @@ def run(filename):
         print("Parsing failed.")
         return
 
-    view = [0,
-            0,
-            1]
-    ambient = [50,
-               50,
-               50]
+    # view = [0,
+    #         0,
+    #         1]
+    # ambient = [50,
+    #            50,
+    #            50]
     # light = [[0.5,
     #           0.75,
     #           1],
@@ -56,6 +56,11 @@ def run(filename):
 
     # Set ambient light
     ambient = symbols['ambient'][1:] if 'ambient' in symbols else [50, 50, 50]
+
+    # Set camera
+    view = symbols['camera'][1]['aim'] if 'camera' in symbols and 'aim' in symbols['camera'][1] else [0, 0, 1]
+    
+    print("All symbols:")
     print(symbols)
     input()
 
