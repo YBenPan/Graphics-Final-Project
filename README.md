@@ -13,4 +13,4 @@
 - [ ] tween
 - [ ] focal
 - [ ] setknobs
-- [ ] ambient
+- [X] ambient

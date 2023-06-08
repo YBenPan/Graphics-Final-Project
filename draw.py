@@ -76,15 +76,10 @@ def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x1, y1, z1)
     add_point(polygons, x2, y2, z2)
 
-def draw_polygons( polygons, screen, zbuffer, view, ambient, symbols, reflect):
+def draw_polygons( polygons, screen, zbuffer, view, ambient, lights, symbols, reflect):
     if len(polygons) < 2:
         print('Need at least 3 points to draw')
         return
-    # Unpack lights from symbol table and normalize location vectors
-    lights = [ [v[1]['location'], v[1]['color']] for k, v in symbols.items() if v[0] == 'light']
-    for light in lights: 
-        normalize(light[LOCATION])
-    # print(lights)
 
     point = 0
     while point < len(polygons) - 2:
