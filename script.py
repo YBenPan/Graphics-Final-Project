@@ -17,16 +17,16 @@ def run(filename):
 
     view = [0,
             0,
-            1];
+            1]
     ambient = [50,
                50,
                50]
-    light = [[0.5,
-              0.75,
-              1],
-             [255,
-              255,
-              255]]
+    # light = [[0.5,
+    #           0.75,
+    #           1],
+    #          [255,
+    #           255,
+    #           255]]
 
     color = [0, 0, 0]
     tmp = new_matrix()
@@ -58,7 +58,7 @@ def run(filename):
                     args[0], args[1], args[2],
                     args[3], args[4], args[5])
             matrix_mult( stack[-1], tmp )
-            draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+            draw_polygons(tmp, screen, zbuffer, view, ambient, symbols, reflect)
             tmp = []
             reflect = '.white'
         elif c == 'sphere':
@@ -67,7 +67,7 @@ def run(filename):
             add_sphere(tmp,
                        args[0], args[1], args[2], args[3], step_3d)
             matrix_mult( stack[-1], tmp )
-            draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+            draw_polygons(tmp, screen, zbuffer, view, ambient, symbols, reflect)
             tmp = []
             reflect = '.white'
         elif c == 'torus':
@@ -76,7 +76,7 @@ def run(filename):
             add_torus(tmp,
                       args[0], args[1], args[2], args[3], args[4], step_3d)
             matrix_mult( stack[-1], tmp )
-            draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+            draw_polygons(tmp, screen, zbuffer, view, ambient, symbols, reflect)
             tmp = []
             reflect = '.white'
         elif c == 'line':
