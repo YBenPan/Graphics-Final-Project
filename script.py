@@ -111,6 +111,7 @@ def run(filename):
                     elif line[:2] == 'f ':
                         faceList.append([int(vertex) - 1 for vertex in line[2:].split()])
             add_mesh(tmp, vertexList, faceList)
+            matrix_mult( stack[-1], tmp )
             draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
             tmp = []
             # input()
