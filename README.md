@@ -7,7 +7,7 @@
 - [ ] basename
 - [ ] mesh
 - [ ] camera
-- [ ] light
+- [X] light
 - [ ] constants
 - [ ] save_knobs
 - [ ] tween
