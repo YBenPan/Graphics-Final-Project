@@ -163,7 +163,8 @@ def run(filename):
                 draw_lines(tmp, screen, zbuffer, color)
                 tmp = []
             elif c == 'mesh':
-                # input()
+                if command['constants']:
+                    reflect = command['constants']
                 filename = f"{command['args'][0]}.obj"
                 vertexList = []
                 faceList = []
@@ -178,7 +179,6 @@ def run(filename):
                 matrix_mult( stack[-1], tmp )
                 draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
                 tmp = []
-                # input()
             elif c == 'move':
                 knob = command['knob']
                 val = symbols[knob][1] if knob else 1
