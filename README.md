@@ -2,9 +2,9 @@
 # By: Ben Pan and Vernon Hughes
 
 ## Features / List of MDL Commands
-- [ ] frames
-- [ ] vary
-- [ ] basename
+- [X] frames
+- [X] vary
+- [X] basename
 - [X] mesh
 - [X] camera
 - [X] light
