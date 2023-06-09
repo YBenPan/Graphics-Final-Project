@@ -88,6 +88,8 @@ def draw_polygons( polygons, screen, zbuffer, view, ambient, lights, symbols, re
     if len(polygons) < 2:
         print('Need at least 3 points to draw')
         return
+    t = view[0][:3]
+    view = t[:]
 
     point = 0
     while point < len(polygons) - 2:

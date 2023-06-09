@@ -150,7 +150,7 @@ def run(filename):
                         args[3], args[4], args[5])
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view[0][:3], ambient, lights, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
                 tmp = []
                 reflect = '.white'
             elif c == 'sphere':
@@ -160,7 +160,7 @@ def run(filename):
                            args[0], args[1], args[2], args[3], step_3d)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view[0][:3], ambient, lights, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
                 tmp = []
                 reflect = '.white'
             elif c == 'torus':
@@ -170,7 +170,7 @@ def run(filename):
                           args[0], args[1], args[2], args[3], args[4], step_3d)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view[0][:3], ambient, lights, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
                 tmp = []
                 reflect = '.white'
             elif c == 'line':
@@ -196,7 +196,7 @@ def run(filename):
                 add_mesh(tmp, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view[0][:3], ambient, lights, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
                 tmp = []
             elif c == 'move':
                 knob = command['knob']
@@ -234,7 +234,6 @@ def run(filename):
                 else:
                     tmp = make_rotZ(-theta)
                 tmp_view = [x[:] for x in tmp]
-                # print(viewing_transform, tmp, tmp_view, transpose(view))
                 matrix_mult(tmp_view, view)
                 matrix_mult(viewing_transform, tmp)
                 viewing_transform = [x[:] for x in tmp]
