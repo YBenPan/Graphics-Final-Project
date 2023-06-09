@@ -100,6 +100,16 @@ def ident( matrix ):
             else:
                 matrix[c][r] = 0
 
+def transpose( matrix ):
+    # M[i][j]: i-th column j-th row
+    nrows = len(matrix[0])
+    ncols = len(matrix) 
+    t = new_matrix(nrows, ncols)
+    for r in range(ncols):
+        for c in range(nrows):
+            t[r][c] = matrix[c][r]
+    return t
+
 #multiply m1 by m2, modifying m2 to be the product
 #m1 * m2 -> m2
 def matrix_mult( m1, m2 ):

@@ -57,9 +57,6 @@ def run(filename):
     # Set ambient light
     ambient = symbols['ambient'][1:] if 'ambient' in symbols else [50, 50, 50]
 
-    # Set camera
-    view = symbols['camera'][1]['aim'] if 'camera' in symbols and 'aim' in symbols['camera'][1] else [0, 0, 1]
-
     # Check for animation keywords
     frames = False
     basename = False
@@ -67,6 +64,8 @@ def run(filename):
 
     print("All symbols:")
     print(symbols)
+    print()
+    print("Press any key to continue...")
     input()
 
     # Pass 0
@@ -107,7 +106,7 @@ def run(filename):
             start_frame = int(args[0])
             end_frame = int(args[1])
             start_value = args[2]
-            end_value = args[3]
+            end_value = args[3] 
             value_delta = (end_value-start_value)/(end_frame-start_frame-1)
 
             knoblist[start_frame][knob] = start_value
@@ -123,7 +122,22 @@ def run(filename):
         tmp = new_matrix()
         ident( tmp )
 
-        stack = [ [x[:] for x in tmp] ]
+        # Set camera
+        view = [[0, 0, 1, 1]]
+        viewing_transform = new_matrix() # Separate from all other transformation matrices
+        ident(viewing_transform)
+        if 'camera' in symbols: 
+            # TODO: Check for transformation order: rotate or translate first? 
+            if 'eye' in symbols['camera'][1]: 
+                # Translate camera by taking the inverse of transformation in the model scene
+                eye_x, eye_y, eye_z = symbols['camera'][1]['eye']
+                camera_trans = make_translate(-eye_x, -eye_y, -eye_z)
+                matrix_mult(camera_trans, viewing_transform)
+            # if 'aim' in symbols['camera'][1]:
+            #     view = symbols['camera'][1]['aim']
+            #     normalize(view)                
+        
+        stack = [[x[:] for x in tmp]]
         for command in commands:
             c = command['op']
             args = command['args']
@@ -134,8 +148,9 @@ def run(filename):
                 add_box(tmp,
                         args[0], args[1], args[2],
                         args[3], args[4], args[5])
+                matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view[0][:3], ambient, lights, symbols, reflect)
                 tmp = []
                 reflect = '.white'
             elif c == 'sphere':
@@ -143,8 +158,9 @@ def run(filename):
                     reflect = command['constants']
                 add_sphere(tmp,
                            args[0], args[1], args[2], args[3], step_3d)
+                matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view[0][:3], ambient, lights, symbols, reflect)
                 tmp = []
                 reflect = '.white'
             elif c == 'torus':
@@ -152,13 +168,15 @@ def run(filename):
                     reflect = command['constants']
                 add_torus(tmp,
                           args[0], args[1], args[2], args[3], args[4], step_3d)
+                matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view[0][:3], ambient, lights, symbols, reflect)
                 tmp = []
                 reflect = '.white'
             elif c == 'line':
                 add_edge(tmp,
                          args[0], args[1], args[2], args[3], args[4], args[5])
+                matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
                 draw_lines(tmp, screen, zbuffer, color)
                 tmp = []
@@ -176,8 +194,9 @@ def run(filename):
                         elif line[:2] == 'f ':
                             faceList.append([int(vertex) - 1 for vertex in line[2:].split()])
                 add_mesh(tmp, vertexList, faceList)
+                matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
+                draw_polygons(tmp, screen, zbuffer, view[0][:3], ambient, lights, symbols, reflect)
                 tmp = []
             elif c == 'move':
                 knob = command['knob']
@@ -192,7 +211,7 @@ def run(filename):
                 tmp = make_scale(val*args[0], val*args[1], val*args[2])
                 matrix_mult(stack[-1], tmp)
                 stack[-1] = [x[:] for x in tmp]
-                tmp = []
+                tmp = []                
             elif c == 'rotate':
                 knob = command['knob']
                 val = symbols[knob][1] if knob else 1
@@ -206,6 +225,20 @@ def run(filename):
                 matrix_mult( stack[-1], tmp )
                 stack[-1] = [ x[:] for x in tmp]
                 tmp = []
+            elif c == 'rotcam': 
+                theta = args[1] * (math.pi/180)
+                if args[0] == 'x':
+                    tmp = make_rotX(-theta)
+                elif args[0] == 'y':
+                    tmp = make_rotY(-theta)
+                else:
+                    tmp = make_rotZ(-theta)
+                tmp_view = [x[:] for x in tmp]
+                # print(viewing_transform, tmp, tmp_view, transpose(view))
+                matrix_mult(tmp_view, view)
+                matrix_mult(viewing_transform, tmp)
+                viewing_transform = [x[:] for x in tmp]
+                tmp = []    
             elif c == 'push':
                 stack.append([x[:] for x in stack[-1]] )
             elif c == 'pop':

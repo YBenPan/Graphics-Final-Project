@@ -57,7 +57,8 @@ MISC
 ----
 //			- comment
 save_coord_system name
-camera eyex eyey eyez aimx aimy aimz
+camera eyex eyey eyez
+rotcam x|y|z degrees
 save filename
 gereate_rayfiles
 focal value

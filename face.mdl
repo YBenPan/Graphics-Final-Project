@@ -2,6 +2,9 @@
 constants shiny_purple 0.3 0.2 0.8 0.3 0 0 0.3 0.2 0.8
 constants shiny_teal 0.3 0.0 0.0 0.3 0.2 0.8 0.3 0.2 0.8
 constants dull_yellow 0.3 0.8 0.2 0.3 0.8 0.2 0 0 0
+camera 100 -200 0
+rotcam z 20
+rotcam x 45
 // ambient 200 200 200
 light light1 0.5 0.75 1 255 255 255
 // light light2 0 0 1 255 255 0

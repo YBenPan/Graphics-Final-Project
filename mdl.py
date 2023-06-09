@@ -38,7 +38,8 @@ tokens = (
     "DISPLAY",
     "SCREEN",
     "WEB",
-    "CO"
+    "CO",
+    "ROTCAM"
 )
 
 reserved = {
@@ -79,7 +80,8 @@ reserved = {
     "setknobs" : "SET_KNOBS",
     "focal" : "FOCAL",
     "display" : "DISPLAY",
-    "web" : "WEB"
+    "web" : "WEB",
+    "rotcam": "ROTCAM"
 }
 
 t_ignore = " \t"
@@ -321,10 +323,20 @@ def p_command_shading(p):
     cmd = {'op':p[1], 'args' : None, 'shade_type' : p[2] }
     commands.append(cmd)
 
+# def p_command_camera(p):
+#     "command : CAMERA NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER"
+#     symbols['camera'] = ['camera', {'eye': p[2:5], 'aim': p[5:]} ]
+#     commands.append({'op':p[1], 'args':None})
+
 def p_command_camera(p):
-    "command : CAMERA NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER"
-    symbols['camera'] = ['camera', {'eye': p[2:4], 'aim': p[4:]} ]
+    "command : CAMERA NUMBER NUMBER NUMBER"
+    symbols['camera'] = ['camera', {'eye': p[2:5]} ]
     commands.append({'op':p[1], 'args':None})
+
+def p_command_rotcam(p):
+    "command : ROTCAM XYZ NUMBER"
+    cmd = {'op':p[1], 'args' : p[2:4]}
+    commands.append(cmd)
 
 def p_command_generate_rayfiles(p):
     "command : GENERATE_RAYFILES"
