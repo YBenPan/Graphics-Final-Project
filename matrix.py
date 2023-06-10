@@ -134,3 +134,13 @@ def new_matrix(rows = 4, cols = 4):
         for r in range( rows ):
             m[c].append( 0 )
     return m
+
+
+def vector_avg(vectors):
+    res = [0, 0, 0]
+    for vector in vectors:
+        res[0] += vector[0]
+        res[1] += vector[1]
+        res[2] += vector[2]
+    res = [x / len(vectors) for x in res]
+    return res

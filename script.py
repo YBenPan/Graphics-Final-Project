@@ -31,6 +31,7 @@ def run(filename):
     color = [0, 0, 0]
     tmp = new_matrix()
     ident( tmp )
+    normalMap = {}
 
     stack = [ [x[:] for x in tmp] ]
     screen = new_screen()
@@ -145,41 +146,37 @@ def run(filename):
             if c == 'box':
                 if command['constants']:
                     reflect = command['constants']
-                add_box(tmp,
+                add_box(tmp, normalMap, 
                         args[0], args[1], args[2],
                         args[3], args[4], args[5])
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
+                draw_polygons(tmp, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect)
                 tmp = []
+                normalMap = {}
                 reflect = '.white'
             elif c == 'sphere':
                 if command['constants']:
                     reflect = command['constants']
-                add_sphere(tmp,
+                add_sphere(tmp, normalMap, 
                            args[0], args[1], args[2], args[3], step_3d)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
+                draw_polygons(tmp, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect)
                 tmp = []
+                normalMap = {}
                 reflect = '.white'
             elif c == 'torus':
                 if command['constants']:
                     reflect = command['constants']
-                add_torus(tmp,
+                add_torus(tmp, normalMap, 
                           args[0], args[1], args[2], args[3], args[4], step_3d)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
+                draw_polygons(tmp, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect)
                 tmp = []
+                normalList = {}
                 reflect = '.white'
-            elif c == 'line':
-                add_edge(tmp,
-                         args[0], args[1], args[2], args[3], args[4], args[5])
-                matrix_mult( viewing_transform, tmp)
-                matrix_mult( stack[-1], tmp )
-                draw_lines(tmp, screen, zbuffer, color)
-                tmp = []
             elif c == 'mesh':
                 if command['constants']:
                     reflect = command['constants']
@@ -193,10 +190,18 @@ def run(filename):
                             vertexList.append([float(coord) for coord in line[2:].split()])
                         elif line[:2] == 'f ':
                             faceList.append([int(vertex) - 1 for vertex in line[2:].split()])
-                add_mesh(tmp, vertexList, faceList)
+                add_mesh(tmp, normalMap, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect)
+                draw_polygons(tmp, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect)
+                tmp = []
+                normalMap = {}
+            elif c == 'line':
+                add_edge(tmp,
+                         args[0], args[1], args[2], args[3], args[4], args[5])
+                matrix_mult( viewing_transform, tmp)
+                matrix_mult( stack[-1], tmp )
+                draw_lines(tmp, screen, zbuffer, color)
                 tmp = []
             elif c == 'move':
                 knob = command['knob']
