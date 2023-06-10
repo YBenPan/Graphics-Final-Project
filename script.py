@@ -146,7 +146,7 @@ def run(filename):
             if c == 'box':
                 if command['constants']:
                     reflect = command['constants']
-                add_box(tmp, normalMap, 
+                add_box(tmp,
                         args[0], args[1], args[2],
                         args[3], args[4], args[5])
                 matrix_mult( viewing_transform, tmp)
@@ -158,7 +158,7 @@ def run(filename):
             elif c == 'sphere':
                 if command['constants']:
                     reflect = command['constants']
-                add_sphere(tmp, normalMap, 
+                add_sphere(tmp,
                            args[0], args[1], args[2], args[3], step_3d)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
@@ -169,7 +169,7 @@ def run(filename):
             elif c == 'torus':
                 if command['constants']:
                     reflect = command['constants']
-                add_torus(tmp, normalMap, 
+                add_torus(tmp,
                           args[0], args[1], args[2], args[3], args[4], step_3d)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
@@ -190,7 +190,7 @@ def run(filename):
                             vertexList.append([float(coord) for coord in line[2:].split()])
                         elif line[:2] == 'f ':
                             faceList.append([int(vertex) - 1 for vertex in line[2:].split()])
-                add_mesh(tmp, normalMap, vertexList, faceList)
+                add_mesh(tmp, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
                 draw_polygons(tmp, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect)
@@ -242,6 +242,8 @@ def run(filename):
                 matrix_mult(tmp_view, view)
                 matrix_mult(viewing_transform, tmp)
                 viewing_transform = [x[:] for x in tmp]
+                print("Viewing Transform:", viewing_transform)
+                # input()
                 tmp = []    
             elif c == 'push':
                 stack.append([x[:] for x in stack[-1]] )
@@ -252,3 +254,4 @@ def run(filename):
             # elif c == 'save':
             #     save_extension(screen, args[0])
         save_extension(screen, basename + ('%d.png' % i))
+        print(f"Done: {basename} {i}")

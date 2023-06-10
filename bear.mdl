@@ -1,0 +1,39 @@
+// Note: This uses the light values in the provided source code.
+constants shiny_purple 0.3 0.2 0.8 0.3 0 0 0.3 0.2 0.8
+constants shiny_teal 0.3 0.0 0.0 0.3 0.2 0.8 0.3 0.2 0.8
+constants dull_yellow 0.3 0.8 0.2 0.3 0.8 0.2 0 0 0
+camera 0 0 0
+// ambient 200 200 200
+light light1 0.5 0.75 1 255 255 255
+// light light2 0 0 1 255 255 0
+basename bear
+frames 5
+vary knobby 0 5 0 1
+push
+move 250 340 0
+sphere 0 0 0 62.5
+push
+move -60 50 0
+sphere 0 0 0 25
+sphere 120 0 0 25
+pop
+push
+move -90 -110 0
+sphere 0 0 0 25
+sphere 180 0 0 25
+pop
+push
+move -50 -260 0
+sphere 0 0 0 25
+sphere 100 0 0 25
+pop
+push
+move 0 -160 0
+rotate x 90
+torus 0 0 0 50 50
+pop
+pop
+move 160 230 0 
+sphere 0 0 0 25
+display
+save bear.png

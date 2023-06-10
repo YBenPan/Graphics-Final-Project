@@ -3,25 +3,46 @@ from matrix import *
 from gmath import *
 import json
 
-def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, color):
+def draw_scanline(x0, z0, x1, z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer):
     if x0 > x1:
-        tx = x0
-        tz = z0
-        x0 = x1
-        z0 = z1
-        x1 = tx
-        z1 = tz
+        # tx = x0
+        # tz = z0
+        # x0 = x1
+        # z0 = z1
+        # x1 = tx
+        # z1 = tz
+        x0, x1 = x1, x0
+        z0, z1 = z1, z0
+        nx0, nx1 = nx1, nx0
+        ny0, ny1 = ny1, ny0
+        nz0, nz1 = nz1, nz0
 
+    dist_x = x1 - x0 + 1
     x = x0
     z = z0
-    delta_z = (z1 - z0) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
+    delta_z = (z1 - z0) / dist_x if dist_x != 0 else 0
+
+    nx = nx0
+    ny = ny0
+    nz = nz0
+    delta_nx = (nx1 - nx0) / dist_x if dist_x != 0 else 0
+    delta_ny = (ny1 - ny0) / dist_x if dist_x != 0 else 0
+    delta_nz = (nz1 - nz0) / dist_x if dist_x != 0 else 0
 
     while x <= x1:
-        plot(screen, zbuffer, color, x, y, z)
+        normal = [nx, ny, nz]
+        # Backface culling?
+        # if dot_product(normal, view) > 0:
+        if 1:
+            color = get_lighting(normal, view, ambient, lights, symbols, reflect )
+            plot(screen, zbuffer, color, x, y, z)
         x+= 1
         z+= delta_z
+        nx += delta_nx
+        ny += delta_ny
+        nz += delta_nz
 
-def scanline_convert(polygons, normalMap, i, screen, zbuffer, color):
+def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, reflect, screen, zbuffer):
     flip = False
     BOT = 0
     TOP = 2
@@ -47,11 +68,13 @@ def scanline_convert(polygons, normalMap, i, screen, zbuffer, color):
         normalize(v) # Can probably write this with map
     # print(f"POST: {points[BOT]}: {vertexNorms[BOT]}")
 
-    x0 = points[BOT][0]
+    x0 = points[BOT][0] # TO MID
     z0 = points[BOT][2]
-    x1 = points[BOT][0]
+    x1 = points[BOT][0] # TO TOP
     z1 = points[BOT][2]
     y = int(points[BOT][1])
+    nx0, ny0, nz0 = vertexNorms[BOT]
+    nx1, ny1, nz1 = vertexNorms[BOT]
 
     distance0 = int(points[TOP][1]) - y * 1.0 + 1
     distance1 = int(points[MID][1]) - y * 1.0 + 1
@@ -61,6 +84,12 @@ def scanline_convert(polygons, normalMap, i, screen, zbuffer, color):
     dz0 = (points[TOP][2] - points[BOT][2]) / distance0 if distance0 != 0 else 0
     dx1 = (points[MID][0] - points[BOT][0]) / distance1 if distance1 != 0 else 0
     dz1 = (points[MID][2] - points[BOT][2]) / distance1 if distance1 != 0 else 0
+    dnx0 = (vertexNorms[TOP][0] - vertexNorms[BOT][0]) / distance0 if distance0 != 0 else 0
+    dny0 = (vertexNorms[TOP][1] - vertexNorms[BOT][1]) / distance0 if distance0 != 0 else 0
+    dnz0 = (vertexNorms[TOP][2] - vertexNorms[BOT][2]) / distance0 if distance0 != 0 else 0
+    dnx1 = (vertexNorms[MID][0] - vertexNorms[BOT][0]) / distance1 if distance1 != 0 else 0
+    dny1 = (vertexNorms[MID][1] - vertexNorms[BOT][1]) / distance1 if distance1 != 0 else 0
+    dnz1 = (vertexNorms[MID][2] - vertexNorms[BOT][2]) / distance1 if distance1 != 0 else 0
 
     while y <= int(points[TOP][1]):
         if ( not flip and y >= int(points[MID][1])):
@@ -68,31 +97,42 @@ def scanline_convert(polygons, normalMap, i, screen, zbuffer, color):
 
             dx1 = (points[TOP][0] - points[MID][0]) / distance2 if distance2 != 0 else 0
             dz1 = (points[TOP][2] - points[MID][2]) / distance2 if distance2 != 0 else 0
+            dnx1 = (vertexNorms[TOP][0] - vertexNorms[MID][0]) / distance2 if distance2 != 0 else 0
+            dny1 = (vertexNorms[TOP][1] - vertexNorms[MID][1]) / distance2 if distance2 != 0 else 0
+            dnz1 = (vertexNorms[TOP][2] - vertexNorms[MID][2]) / distance2 if distance2 != 0 else 0            
             x1 = points[MID][0]
             z1 = points[MID][2]
+            nx1 = vertexNorms[MID][0]
+            ny1 = vertexNorms[MID][1]
+            nz1 = vertexNorms[MID][2]
 
         #draw_line(int(x0), y, z0, int(x1), y, z1, screen, zbuffer, color)
-        draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, color)
+        draw_scanline(int(x0), z0, int(x1), z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer)
         x0+= dx0
         z0+= dz0
         x1+= dx1
         z1+= dz1
         y+= 1
+        nx0 += dnx0
+        ny0 += dny0
+        nz0 += dnz0
+        nx1 += dnx1
+        ny1 += dny1
+        nz1 += dnz1
 
 
-
-def add_polygon( polygons, normalMap, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
+def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x0, y0, z0)
     add_point(polygons, x1, y1, z1)
     add_point(polygons, x2, y2, z2)
 
 
-def add_mesh( polygons, normalMap, vertexList, faceList): 
+def add_mesh( polygons, vertexList, faceList): 
     for face in faceList:
         x0, y0, z0 = vertexList[face[0]]
         x1, y1, z1 = vertexList[face[1]]
         x2, y2, z2 = vertexList[face[2]]
-        add_polygon(polygons, normalMap, x0, y0, z0, x1, y1, z1, x2, y2, z2)
+        add_polygon(polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2)
 
 def draw_polygons( polygons, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect):
     if len(polygons) < 2:
@@ -104,7 +144,6 @@ def draw_polygons( polygons, normalMap, screen, zbuffer, view, ambient, lights, 
     point = 0
     while point < len(polygons) - 2:
         normal = calculate_normal(polygons, point)[:]
-        normalize(normal)
         x0, y0, z0 = polygons[point][:3]
         x1, y1, z1 = polygons[point + 1][:3]
         x2, y2, z2 = polygons[point + 2][:3]
@@ -116,66 +155,67 @@ def draw_polygons( polygons, normalMap, screen, zbuffer, view, ambient, lights, 
     point = 0
     while point < len(polygons) - 2:
 
-        normal = calculate_normal(polygons, point)[:]
+        scanline_convert(polygons, normalMap, point, view, ambient, lights, symbols, reflect, screen, zbuffer)
 
-        #print normal
-        if normal[2] > 0:
+        # normal = calculate_normal(polygons, point)[:]
 
-            color = get_lighting(normal, view, ambient, lights, symbols, reflect )
-            scanline_convert(polygons, normalMap, point, screen, zbuffer, color)
+        # if normal[2] > 0:
 
-            # draw_line( int(polygons[point][0]),
-            #            int(polygons[point][1]),
-            #            polygons[point][2],
-            #            int(polygons[point+1][0]),
-            #            int(polygons[point+1][1]),
-            #            polygons[point+1][2],
-            #            screen, zbuffer, color)
-            # draw_line( int(polygons[point+2][0]),
-            #            int(polygons[point+2][1]),
-            #            polygons[point+2][2],
-            #            int(polygons[point+1][0]),
-            #            int(polygons[point+1][1]),
-            #            polygons[point+1][2],
-            #            screen, zbuffer, color)
-            # draw_line( int(polygons[point][0]),
-            #            int(polygons[point][1]),
-            #            polygons[point][2],
-            #            int(polygons[point+2][0]),
-            #            int(polygons[point+2][1]),
-            #            polygons[point+2][2],
-            #            screen, zbuffer, color)
+        #     color = get_lighting(normal, view, ambient, lights, symbols, reflect )
+        #     scanline_convert(polygons, normalMap, point, screen, zbuffer, color)
+
+        #     # draw_line( int(polygons[point][0]),
+        #     #            int(polygons[point][1]),
+        #     #            polygons[point][2],
+        #     #            int(polygons[point+1][0]),
+        #     #            int(polygons[point+1][1]),
+        #     #            polygons[point+1][2],
+        #     #            screen, zbuffer, color)
+        #     # draw_line( int(polygons[point+2][0]),
+        #     #            int(polygons[point+2][1]),
+        #     #            polygons[point+2][2],
+        #     #            int(polygons[point+1][0]),
+        #     #            int(polygons[point+1][1]),
+        #     #            polygons[point+1][2],
+        #     #            screen, zbuffer, color)
+        #     # draw_line( int(polygons[point][0]),
+        #     #            int(polygons[point][1]),
+        #     #            polygons[point][2],
+        #     #            int(polygons[point+2][0]),
+        #     #            int(polygons[point+2][1]),
+        #     #            polygons[point+2][2],
+        #     #            screen, zbuffer, color)
         point+= 3
 
 
-def add_box( polygons, normalMap, x, y, z, width, height, depth ):
+def add_box( polygons, x, y, z, width, height, depth ):
     x1 = x + width
     y1 = y - height
     z1 = z - depth
 
     #front
-    add_polygon(polygons, normalMap, x, y, z, x1, y1, z, x1, y, z)
-    add_polygon(polygons, normalMap, x, y, z, x, y1, z, x1, y1, z)
+    add_polygon(polygons, x, y, z, x1, y1, z, x1, y, z)
+    add_polygon(polygons, x, y, z, x, y1, z, x1, y1, z)
 
     #back
-    add_polygon(polygons, normalMap, x1, y, z1, x, y1, z1, x, y, z1)
-    add_polygon(polygons, normalMap, x1, y, z1, x1, y1, z1, x, y1, z1)
+    add_polygon(polygons, x1, y, z1, x, y1, z1, x, y, z1)
+    add_polygon(polygons, x1, y, z1, x1, y1, z1, x, y1, z1)
 
     #right side
-    add_polygon(polygons, normalMap, x1, y, z, x1, y1, z1, x1, y, z1)
-    add_polygon(polygons, normalMap, x1, y, z, x1, y1, z, x1, y1, z1)
+    add_polygon(polygons, x1, y, z, x1, y1, z1, x1, y, z1)
+    add_polygon(polygons, x1, y, z, x1, y1, z, x1, y1, z1)
     #left side
-    add_polygon(polygons, normalMap, x, y, z1, x, y1, z, x, y, z)
-    add_polygon(polygons, normalMap, x, y, z1, x, y1, z1, x, y1, z)
+    add_polygon(polygons, x, y, z1, x, y1, z, x, y, z)
+    add_polygon(polygons, x, y, z1, x, y1, z1, x, y1, z)
 
     #top
-    add_polygon(polygons, normalMap, x, y, z1, x1, y, z, x1, y, z1)
-    add_polygon(polygons, normalMap, x, y, z1, x, y, z, x1, y, z)
+    add_polygon(polygons, x, y, z1, x1, y, z, x1, y, z1)
+    add_polygon(polygons, x, y, z1, x, y, z, x1, y, z)
     #bottom
-    add_polygon(polygons, normalMap, x, y1, z, x1, y1, z1, x1, y1, z)
-    add_polygon(polygons, normalMap, x, y1, z, x, y1, z1, x1, y1, z1)
+    add_polygon(polygons, x, y1, z, x1, y1, z1, x1, y1, z)
+    add_polygon(polygons, x, y1, z, x, y1, z1, x1, y1, z1)
 
-def add_sphere(polygons, normalMap, cx, cy, cz, r, step ):
+def add_sphere(polygons, cx, cy, cz, r, step ):
     points = generate_sphere(cx, cy, cz, r, step)
 
     lat_start = 0
@@ -193,8 +233,7 @@ def add_sphere(polygons, normalMap, cx, cy, cz, r, step ):
             p3 = (p0+step) % (step * (step-1))
 
             if longt != step - 2:
-                add_polygon( polygons, 
-                             normalMap, 
+                add_polygon( polygons,  
                              points[p0][0],
                              points[p0][1],
                              points[p0][2],
@@ -206,7 +245,6 @@ def add_sphere(polygons, normalMap, cx, cy, cz, r, step ):
                              points[p2][2])
             if longt != 0:
                 add_polygon( polygons, 
-                             normalMap, 
                              points[p0][0],
                              points[p0][1],
                              points[p0][2],
@@ -239,7 +277,7 @@ def generate_sphere( cx, cy, cz, r, step ):
             #print 'rotation: %d\tcircle%d'%(rotation, circle)
     return points
 
-def add_torus(polygons, normalMap, cx, cy, cz, r0, r1, step ):
+def add_torus(polygons, cx, cy, cz, r0, r1, step ):
     points = generate_torus(cx, cy, cz, r0, r1, step)
 
     lat_start = 0
@@ -259,7 +297,6 @@ def add_torus(polygons, normalMap, cx, cy, cz, r0, r1, step ):
             p3 = (p0 + step) % (step * step)
 
             add_polygon(polygons,
-                        normalMap, 
                         points[p0][0],
                         points[p0][1],
                         points[p0][2],
@@ -270,7 +307,6 @@ def add_torus(polygons, normalMap, cx, cy, cz, r0, r1, step ):
                         points[p2][1],
                         points[p2][2] )
             add_polygon(polygons,
-                        normalMap, 
                         points[p0][0],
                         points[p0][1],
                         points[p0][2],
