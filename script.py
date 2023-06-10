@@ -36,6 +36,7 @@ def run(filename):
     supersample = 2
     screen = new_screen(500*supersample, 500*supersample)
     zbuffer = new_zbuffer(500*supersample, 500*supersample)
+    reduced_screen = [[0 for x in range(500)] for y in range(500)]
     tmp = []
     step_3d = 100
     consts = ''
@@ -121,6 +122,7 @@ def run(filename):
                 symbols[knob] = ['knob', knobs[knob]]
         clear_screen( screen )
         clear_zbuffer( zbuffer )
+        reduced_screen = [[0 for x in range(500)] for y in range(500)]
         tmp = []
 
         # Set camera
@@ -151,7 +153,7 @@ def run(filename):
                         args[3], args[4], args[5])
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect, supersample)
+                draw_polygons(tmp, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
                 reflect = '.white'
             elif c == 'sphere':
@@ -161,7 +163,7 @@ def run(filename):
                            args[0], args[1], args[2], args[3], step_3d)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect, supersample)
+                draw_polygons(tmp, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
                 reflect = '.white'
             elif c == 'torus':
@@ -171,7 +173,7 @@ def run(filename):
                           args[0], args[1], args[2], args[3], args[4], step_3d)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect, supersample)
+                draw_polygons(tmp, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
                 reflect = '.white'
             elif c == 'line':
@@ -179,7 +181,7 @@ def run(filename):
                          args[0], args[1], args[2], args[3], args[4], args[5])
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_lines(tmp, screen, zbuffer, color, supersample)
+                draw_lines(tmp, screen, zbuffer, reduced_screen, color, supersample)
                 tmp = []
             elif c == 'mesh':
                 if command['constants']:
@@ -197,7 +199,7 @@ def run(filename):
                 add_mesh(tmp, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, view, ambient, lights, symbols, reflect, supersample)
+                draw_polygons(tmp, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
             elif c == 'move':
                 knob = command['knob'] if command['knob'] else None
@@ -246,12 +248,12 @@ def run(filename):
             if frames == 1:
                 if c == 'display':
                     display(screen)
-                    screen = reduce(screen, supersample)
+                    screen = reduce(screen, reduced_screen, supersample)
                     display(screen)
                 elif c == 'save':
                     save_extension(screen, args[0])
         if frames > 1:
-            save_extension(screen, basename + ('%d.png' % i).zfill(8))
+            save_extension(screen, 'gif/' + basename + ('%d.png' % i).zfill(8))
         else:
             save_extension(screen, 'image.png')
     if frames > 1:
