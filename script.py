@@ -198,7 +198,7 @@ def run(filename):
                 add_mesh(tmp, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect, supersample)
+                draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
                 normalMap = {}
             elif c == 'line':

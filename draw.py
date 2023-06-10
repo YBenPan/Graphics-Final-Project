@@ -3,7 +3,7 @@ from matrix import *
 from gmath import *
 import json
 
-def draw_scanline(x0, z0, x1, z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample):
+def draw_scanline(x0, z0, x1, z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample):
     if x0 > x1:
         # tx = x0
         # tz = z0
@@ -35,14 +35,14 @@ def draw_scanline(x0, z0, x1, z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient
         # if dot_product(normal, view) > 0:
         if 1:
             color = get_lighting(normal, view, ambient, lights, symbols, reflect )
-            plot(screen, zbuffer, color, x, y, z, 500*supersample, 500*supersample)
+            plot(screen, zbuffer, color, x, y, z, supersample)
         x += 1
         z += delta_z
         nx += delta_nx
         ny += delta_ny
         nz += delta_nz
 
-def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample):
+def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample):
     flip = False
     BOT = 0
     TOP = 2
@@ -110,7 +110,27 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
 
 
             while y < ym * supersample + j:
-                draw_scanline(int(x0), z0, int(x1), z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample)
+                # print(x0, x1, y)
+                # print(500-1-int(y/supersample), int(x0/supersample))
+                # input()
+                if 500-1-int(y/supersample) >= 0 and 500-1-int(y/supersample) < 500:
+                    if int(x0/supersample) > 0 and int(x0/supersample) < 500:
+                        reduced_screen[500-1-int(y/supersample)][int(x0/supersample)] = 1
+                    if int(x1/supersample) > 0 and int(x1/supersample) < 500:
+                        reduced_screen[500-1-int(y/supersample)][int(x1/supersample)] = 1
+                normal = [nx0, ny0, nz0]
+                normalize(normal)
+                color = get_lighting(normal, view, ambient, lights, symbols, reflect )
+                plot(screen, zbuffer, color, int(x0), int(y), z0, supersample)
+                normal = [nx1, ny1, nz1]
+                normalize(normal)
+                color = get_lighting(normal, view, ambient, lights, symbols, reflect )
+                plot(screen, zbuffer, color, int(x1), int(y), z1, supersample)
+                if i == 0:
+                    if x0 < x1:
+                        draw_scanline(int(x0)+1, z0, int(x1)-1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
+                    else:
+                        draw_scanline(int(x0)-1, z0, int(x1)+1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
                 if (xt != xb):
                     x0 += (xt-xb)/(yt-yb+1)
                 if (xm != xb):
@@ -142,7 +162,24 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
             # input()
 
             while y <= yt * supersample + j:
-                draw_scanline(int(x0), z0, int(x1), z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample)
+                if 500-1-int(y/supersample) >= 0 and 500-1-int(y/supersample) < 500:
+                    if int(x0/supersample) >= 0 and int(x0/supersample) < 500:
+                        reduced_screen[500-1-int(y/supersample)][int(x0/supersample)] = 1
+                    if int(x1/supersample) >= 0 and int(x1/supersample) < 500:
+                        reduced_screen[500-1-int(y/supersample)][int(x1/supersample)] = 1
+                normal = [nx0, ny0, nz0]
+                normalize(normal)
+                color = get_lighting(normal, view, ambient, lights, symbols, reflect )
+                plot(screen, zbuffer, color, int(x0), int(y), z0, supersample)
+                normal = [nx1, ny1, nz1]
+                normalize(normal)
+                color = get_lighting(normal, view, ambient, lights, symbols, reflect )
+                plot(screen, zbuffer, color, int(x1), int(y), z1, supersample)
+                if i == 0:
+                    if x0 < x1:
+                        draw_scanline(int(x0)+1, z0, int(x1)-1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
+                    else:
+                        draw_scanline(int(x0)-1, z0, int(x1)+1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
                 if (xt != xb):
                     x0 += (xt-xb)/(yt-yb+1)
                 if (xt != xm):
@@ -158,7 +195,7 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
                 nx1 += dnx1
                 ny1 += dny1
                 nz1 += dnz1
-            draw_scanline(int(x0), z0, int(x1), z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample)
+            draw_scanline(int(x0), z0, int(x1), z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
             # print("FINAL:")
             # print(nx0, ny0, nz0, nx1, ny1, nz1)
             # input()
@@ -177,14 +214,14 @@ def add_mesh( polygons, vertexList, faceList):
         x2, y2, z2 = vertexList[face[2]]
         add_polygon(polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2)
 
-def draw_polygons( polygons, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect, supersample):
+def draw_polygons( polygons, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample):
     if len(polygons) < 2:
         print('Need at least 3 points to draw')
         return
     t = view[0][:3]
     view = t[:]
     view = [-x for x in view]
-    print(view)
+    # print(view)
 
     point = 0
     while point < len(polygons) - 2:
@@ -201,7 +238,7 @@ def draw_polygons( polygons, normalMap, screen, zbuffer, view, ambient, lights, 
     while point < len(polygons) - 2:
         normal = calculate_normal(polygons, point)[:]
         if dot_product(normal, view) > 0:
-            scanline_convert(polygons, normalMap, point, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample)
+            scanline_convert(polygons, normalMap, point, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
         point+= 3
 
 
