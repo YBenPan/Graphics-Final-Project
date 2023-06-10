@@ -1,6 +1,7 @@
 from subprocess import Popen, PIPE
 from os import remove
 from PIL import Image
+import os
 
 #constants
 XRES = 500
@@ -28,10 +29,10 @@ def new_zbuffer( width = XRES, height = YRES ):
         zb.append( row )
     return zb
 
-def plot( screen, zbuffer, color, x, y, z ):
-    newy = YRES - 1 - y
+def plot( screen, zbuffer, color, x, y, z, width = XRES, height = YRES ):
+    newy = height - 1 - y
     z = int((z * 1000)) / 1000.0
-    if ( x >= 0 and x < XRES and newy >= 0 and newy < YRES and zbuffer[newy][x] <= z):
+    if ( x >= 0 and x < width and newy >= 0 and newy < height and zbuffer[newy][x] <= z):
         screen[newy][x] = color[:]
         zbuffer[newy][x] = z
 
@@ -90,3 +91,9 @@ def display( screen ):
 
     img.putdata(pixels)
     img.show()
+
+def convert_to_gif( basename, gif ):
+    os.system("magick -delay 20 %s* %s" % (basename, gif))
+
+def show_gif( gif ):
+    os.system("open %s" % gif)

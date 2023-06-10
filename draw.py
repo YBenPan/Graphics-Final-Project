@@ -3,7 +3,7 @@ from matrix import *
 from gmath import *
 import json
 
-def draw_scanline(x0, z0, x1, z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer):
+def draw_scanline(x0, z0, x1, z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample):
     if x0 > x1:
         # tx = x0
         # tz = z0
@@ -35,14 +35,14 @@ def draw_scanline(x0, z0, x1, z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient
         # if dot_product(normal, view) > 0:
         if 1:
             color = get_lighting(normal, view, ambient, lights, symbols, reflect )
-            plot(screen, zbuffer, color, x, y, z)
-        x+= 1
-        z+= delta_z
+            plot(screen, zbuffer, color, x, y, z, 500*supersample, 500*supersample)
+        x += 1
+        z += delta_z
         nx += delta_nx
         ny += delta_ny
         nz += delta_nz
 
-def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, reflect, screen, zbuffer):
+def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample):
     flip = False
     BOT = 0
     TOP = 2
@@ -52,73 +52,98 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
                (polygons[i+1][0], polygons[i+1][1], polygons[i+1][2]),
                (polygons[i+2][0], polygons[i+2][1], polygons[i+2][2]) ]
 
-    # alas random color, we hardly knew ye
-    #color = [0,0,0]
-    #color[RED] = (23*(i/3)) %256
-    #color[GREEN] = (109*(i/3)) %256
-    #color[BLUE] = (227*(i/3)) %256
 
     points.sort(key = lambda x: x[1])
     vertexNorms = []
     vertexNorms.append(vector_avg(normalMap[points[BOT]]))
     vertexNorms.append(vector_avg(normalMap[points[MID]]))
     vertexNorms.append(vector_avg(normalMap[points[TOP]]))
-    # print(f"PRE: {points[BOT]}: {vertexNorms[BOT]}")
-    for v in vertexNorms:
-        normalize(v) # Can probably write this with map
-    # print(f"POST: {points[BOT]}: {vertexNorms[BOT]}")
 
-    x0 = points[BOT][0] # TO MID
-    z0 = points[BOT][2]
-    x1 = points[BOT][0] # TO TOP
-    z1 = points[BOT][2]
-    y = int(points[BOT][1])
-    nx0, ny0, nz0 = vertexNorms[BOT]
-    nx1, ny1, nz1 = vertexNorms[BOT]
+    polygon = [polygons[i], polygons[i+1], polygons[i+2]]
 
-    distance0 = int(points[TOP][1]) - y * 1.0 + 1
-    distance1 = int(points[MID][1]) - y * 1.0 + 1
-    distance2 = int(points[TOP][1]) - int(points[MID][1]) * 1.0 + 1
+    polygon.sort(key=lambda y: y[1])
 
-    dx0 = (points[TOP][0] - points[BOT][0]) / distance0 if distance0 != 0 else 0
-    dz0 = (points[TOP][2] - points[BOT][2]) / distance0 if distance0 != 0 else 0
-    dx1 = (points[MID][0] - points[BOT][0]) / distance1 if distance1 != 0 else 0
-    dz1 = (points[MID][2] - points[BOT][2]) / distance1 if distance1 != 0 else 0
-    dnx0 = (vertexNorms[TOP][0] - vertexNorms[BOT][0]) / distance0 if distance0 != 0 else 0
-    dny0 = (vertexNorms[TOP][1] - vertexNorms[BOT][1]) / distance0 if distance0 != 0 else 0
-    dnz0 = (vertexNorms[TOP][2] - vertexNorms[BOT][2]) / distance0 if distance0 != 0 else 0
-    dnx1 = (vertexNorms[MID][0] - vertexNorms[BOT][0]) / distance1 if distance1 != 0 else 0
-    dny1 = (vertexNorms[MID][1] - vertexNorms[BOT][1]) / distance1 if distance1 != 0 else 0
-    dnz1 = (vertexNorms[MID][2] - vertexNorms[BOT][2]) / distance1 if distance1 != 0 else 0
+    yb = int(polygon[0][1])
+    ym = int(polygon[1][1])
+    yt = int(polygon[2][1])
 
-    while y <= int(points[TOP][1]):
-        if ( not flip and y >= int(points[MID][1])):
-            flip = True
+    xb = int(polygon[0][0])
+    xm = int(polygon[1][0])
+    xt = int(polygon[2][0])
 
-            dx1 = (points[TOP][0] - points[MID][0]) / distance2 if distance2 != 0 else 0
-            dz1 = (points[TOP][2] - points[MID][2]) / distance2 if distance2 != 0 else 0
-            dnx1 = (vertexNorms[TOP][0] - vertexNorms[MID][0]) / distance2 if distance2 != 0 else 0
-            dny1 = (vertexNorms[TOP][1] - vertexNorms[MID][1]) / distance2 if distance2 != 0 else 0
-            dnz1 = (vertexNorms[TOP][2] - vertexNorms[MID][2]) / distance2 if distance2 != 0 else 0            
-            x1 = points[MID][0]
-            z1 = points[MID][2]
+    zb = int(polygon[0][2])
+    zm = int(polygon[1][2])
+    zt = int(polygon[2][2])
+
+    for i in range(supersample):
+        for j in range(supersample):
+            x0 = xb * supersample + i
+            x1 = xb * supersample + i
+
+            z0 = zb
+            z1 = zb
+
+            y = yb * supersample + j
+
+            nx0, ny0, nz0 = vertexNorms[BOT]
+            nx1, ny1, nz1 = vertexNorms[BOT]
+
+            distance0 = yt - y * 1.0 + 1
+            distance1 = ym - y * 1.0 + 1
+            distance2 = (yt - ym) * 1.0 + 1
+
+            dnx0 = (vertexNorms[TOP][0] - vertexNorms[BOT][0]) / distance0 if distance0 != 0 else 0
+            dny0 = (vertexNorms[TOP][1] - vertexNorms[BOT][1]) / distance0 if distance0 != 0 else 0
+            dnz0 = (vertexNorms[TOP][2] - vertexNorms[BOT][2]) / distance0 if distance0 != 0 else 0
+            dnx1 = (vertexNorms[MID][0] - vertexNorms[BOT][0]) / distance1 if distance1 != 0 else 0
+            dny1 = (vertexNorms[MID][1] - vertexNorms[BOT][1]) / distance1 if distance1 != 0 else 0
+            dnz1 = (vertexNorms[MID][2] - vertexNorms[BOT][2]) / distance1 if distance1 != 0 else 0
+
+
+            while y < ym *supersample + j:
+                draw_scanline(int(x0), z0, int(x1), z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample)
+                if (xt != xb):
+                    x0 += (xt-xb)/(yt-yb)
+                if (xm != xb):
+                    x1 += (xm-xb)/(ym-yb)
+                if (zt != zb):
+                    z0 += (zt-zb)/(yt-yb)
+                if (zm != zb):
+                    z1 += (zm-zb)/(ym-yb)
+                y += 1
+                nx0 += dnx0
+                ny0 += dny0
+                nz0 += dnz0
+                nx1 += dnx1
+                ny1 += dny1
+                nz1 += dnz1
+
+            x1 = xm * supersample + i
+            z1 = zm
             nx1 = vertexNorms[MID][0]
             ny1 = vertexNorms[MID][1]
             nz1 = vertexNorms[MID][2]
+            dnx1 = (vertexNorms[TOP][0] - vertexNorms[MID][0]) / distance2 if distance2 != 0 else 0
+            dny1 = (vertexNorms[TOP][1] - vertexNorms[MID][1]) / distance2 if distance2 != 0 else 0
+            dnz1 = (vertexNorms[TOP][2] - vertexNorms[MID][2]) / distance2 if distance2 != 0 else 0
 
-        #draw_line(int(x0), y, z0, int(x1), y, z1, screen, zbuffer, color)
-        draw_scanline(int(x0), z0, int(x1), z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer)
-        x0+= dx0
-        z0+= dz0
-        x1+= dx1
-        z1+= dz1
-        y+= 1
-        nx0 += dnx0
-        ny0 += dny0
-        nz0 += dnz0
-        nx1 += dnx1
-        ny1 += dny1
-        nz1 += dnz1
+            while y < yt * supersample + j:
+                draw_scanline(int(x0), z0, int(x1), z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample)
+                if (xt != xb):
+                    x0 += (xt-xb)/(yt-yb)
+                if (xt != xm):
+                    x1 += (xt-xm)/(yt-ym)
+                if (zt != zb):
+                    z0 += (zt-zb)/(yt-yb)
+                if (zt != zm):
+                    z1 += (zt-zm)/(yt-ym)
+                y += 1
+                nx0 += dnx0
+                ny0 += dny0
+                nz0 += dnz0
+                nx1 += dnx1
+                ny1 += dny1
+                nz1 += dnz1
 
 
 def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
@@ -127,14 +152,14 @@ def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x2, y2, z2)
 
 
-def add_mesh( polygons, vertexList, faceList): 
+def add_mesh( polygons, vertexList, faceList):
     for face in faceList:
         x0, y0, z0 = vertexList[face[0]]
         x1, y1, z1 = vertexList[face[1]]
         x2, y2, z2 = vertexList[face[2]]
         add_polygon(polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2)
 
-def draw_polygons( polygons, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect):
+def draw_polygons( polygons, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect, supersample):
     if len(polygons) < 2:
         print('Need at least 3 points to draw')
         return
@@ -372,7 +397,7 @@ def add_curve( points, x0, y0, x1, y1, x2, y2, x3, y3, step, curve_type ):
         i+= 1
 
 
-def draw_lines( matrix, screen, zbuffer, color ):
+def draw_lines( matrix, screen, zbuffer, color, supersample ):
     if len(matrix) < 2:
         print('Need at least 2 points to draw')
         return
@@ -385,7 +410,7 @@ def draw_lines( matrix, screen, zbuffer, color ):
                    int(matrix[point+1][0]),
                    int(matrix[point+1][1]),
                    matrix[point+1][2],
-                   screen, zbuffer, color)
+                   screen, zbuffer, color, supersample)
         point+= 2
 
 def add_edge( matrix, x0, y0, z0, x1, y1, z1 ):
@@ -395,9 +420,22 @@ def add_edge( matrix, x0, y0, z0, x1, y1, z1 ):
 def add_point( matrix, x, y, z=0 ):
     matrix.append( [x, y, z, 1] )
 
+def reduce( screen, supersample ):
+    ns = new_screen()
+    zbuf = new_zbuffer()
+    for i in range(int(len(screen)/supersample)):
+        for j in range(int(len(screen)/supersample)):
+            val = [0, 0, 0]
+            for x in range(supersample):
+                for y in range(supersample):
+                    #print(val)
+                    val = [val[k] + screen[i*supersample+x][j*supersample+y][k] for k in range(3)]
+            val = [int(val[i] / (supersample**2)) for i in range(3)]
+            if val != [0, 0, 0]:
+                plot(ns, zbuf, val, j, 500-i, 0)
+    return ns
 
-
-def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
+def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color, supersample=1 ):
 
     #swap points if going right -> left
     if x0 > x1:
@@ -411,65 +449,75 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
         y1 = yt
         z1 = zt
 
-    x = x0
-    y = y0
-    z = z0
-    A = 2 * (y1 - y0)
-    B = -2 * (x1 - x0)
-    wide = False
-    tall = False
+    x0orig = x0
+    x1orig = x1
+    y0orig = y0
+    y1orig = y1
+    for i in range(supersample):
+        for j in range(supersample):
+            x0 = x0orig*supersample+i
+            x1 = x1orig*supersample+i
+            y0 = y0orig*supersample+j
+            y1 = y1orig*supersample+j
+            x = x0
+            y = y0
+            z = z0
+            A = 2 * (y1 - y0)
+            B = -2 * (x1 - x0)
+            wide = False
+            tall = False
 
-    if ( abs(x1-x0) >= abs(y1 - y0) ): #octants 1/8
-        wide = True
-        loop_start = x
-        loop_end = x1
-        dx_east = dx_northeast = 1
-        dy_east = 0
-        d_east = A
-        distance = x1 - x + 1
-        if ( A > 0 ): #octant 1
-            d = A + B/2
-            dy_northeast = 1
-            d_northeast = A + B
-        else: #octant 8
-            d = A - B/2
-            dy_northeast = -1
-            d_northeast = A - B
+            if ( abs(x1-x0) >= abs(y1 - y0) ): #octants 1/8
+                wide = True
+                loop_start = x
+                loop_end = x1
+                dx_east = dx_northeast = 1
+                dy_east = 0
+                d_east = A
+                distance = x1 - x + 1
+                if ( A > 0 ): #octant 1
+                    d = A + B/2
+                    dy_northeast = 1
+                    d_northeast = A + B
+                else: #octant 8
+                    d = A - B/2
+                    dy_northeast = -1
+                    d_northeast = A - B
 
-    else: #octants 2/7
-        tall = True
-        dx_east = 0
-        dx_northeast = 1
-        distance = abs(y1 - y) + 1
-        if ( A > 0 ): #octant 2
-            d = A/2 + B
-            dy_east = dy_northeast = 1
-            d_northeast = A + B
-            d_east = B
-            loop_start = y
-            loop_end = y1
-        else: #octant 7
-            d = A/2 - B
-            dy_east = dy_northeast = -1
-            d_northeast = A - B
-            d_east = -1 * B
-            loop_start = y1
-            loop_end = y
+            else: #octants 2/7
+                tall = True
+                dx_east = 0
+                dx_northeast = 1
+                distance = abs(y1 - y) + 1
+                if ( A > 0 ): #octant 2
+                    d = A/2 + B
+                    dy_east = dy_northeast = 1
+                    d_northeast = A + B
+                    d_east = B
+                    loop_start = y
+                    loop_end = y1
+                else: #octant 7
+                    d = A/2 - B
+                    dy_east = dy_northeast = -1
+                    d_northeast = A - B
+                    d_east = -1 * B
+                    loop_start = y1
+                    loop_end = y
 
-    dz = (z1 - z0) / distance if distance != 0 else 0
+            dz = (z1 - z0) / distance if distance != 0 else 0
 
-    while ( loop_start < loop_end ):
-        plot( screen, zbuffer, color, x, y, z )
-        if ( (wide and ((A > 0 and d > 0) or (A < 0 and d < 0))) or
-             (tall and ((A > 0 and d < 0) or (A < 0 and d > 0 )))):
+            while ( loop_start < loop_end ):
+                plot( screen, zbuffer, color, x, y, z, 500*supersample, 500*supersample )
+                if ( (wide and ((A > 0 and d > 0) or (A < 0 and d < 0))) or
+                     (tall and ((A > 0 and d < 0) or (A < 0 and d > 0 )))):
 
-            x+= dx_northeast
-            y+= dy_northeast
-            d+= d_northeast
-        else:
-            x+= dx_east
-            y+= dy_east
-            d+= d_east
-        z+= dz
-        loop_start+= 1
-    plot( screen, zbuffer, color, x, y, z )
+                    x+= dx_northeast
+                    y+= dy_northeast
+                    d+= d_northeast
+                else:
+                    x+= dx_east
+                    y+= dy_east
+                    d+= d_east
+                z+= dz
+                loop_start+= 1
+            plot( screen, zbuffer, color, x, y, z, 500*supersample, 500*supersample )
