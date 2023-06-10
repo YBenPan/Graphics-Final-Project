@@ -121,17 +121,19 @@ def run(filename):
             knobs = knoblist[i]
             for knob in knobs.keys():
                 symbols[knob] = ['knob', knobs[knob]]
-        clear_screen( screen )
-        clear_zbuffer( zbuffer )
+        # clear_screen( screen )
+        # clear_zbuffer( zbuffer )
+        screen = new_screen(500*supersample, 500*supersample)
+        zbuffer = new_zbuffer(500*supersample, 500*supersample)
         tmp = []
 
         # Set camera
-        view = [[0, 0, 1, 1]]
+        view = [[0, 0, -1, 1]]
         viewing_transform = new_matrix() # Separate from all other transformation matrices
         ident(viewing_transform)
         stack = [[x[:] for x in viewing_transform]]
         if 'camera' in symbols:
-            # TODO: Check for transformation order: rotate or translate first?
+            # TODO: Fix rotate camera. Rotate camera first then translate
             if 'eye' in symbols['camera'][1]:
                 # Translate camera by taking the inverse of transformation in the model scene
                 eye_x, eye_y, eye_z = symbols['camera'][1]['eye']
@@ -144,6 +146,7 @@ def run(filename):
         for command in commands:
             c = command['op']
             args = command['args']
+            print(f"Processing: {c}")
 
             if c == 'box':
                 if command['constants']:
@@ -177,7 +180,7 @@ def run(filename):
                 matrix_mult( stack[-1], tmp )
                 draw_polygons(tmp, normalMap, screen, zbuffer, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
-                normalList = {}
+                normalMap = {}
                 reflect = '.white'
             elif c == 'mesh':
                 if command['constants']:

@@ -59,21 +59,24 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
     vertexNorms.append(vector_avg(normalMap[points[MID]]))
     vertexNorms.append(vector_avg(normalMap[points[TOP]]))
 
-    polygon = [polygons[i], polygons[i+1], polygons[i+2]]
+    yb = int(points[0][1])
+    ym = int(points[1][1])
+    yt = int(points[2][1])
 
-    polygon.sort(key=lambda y: y[1])
+    xb = int(points[0][0])
+    xm = int(points[1][0])
+    xt = int(points[2][0])
 
-    yb = int(polygon[0][1])
-    ym = int(polygon[1][1])
-    yt = int(polygon[2][1])
+    zb = int(points[0][2])
+    zm = int(points[1][2])
+    zt = int(points[2][2])
 
-    xb = int(polygon[0][0])
-    xm = int(polygon[1][0])
-    xt = int(polygon[2][0])
-
-    zb = int(polygon[0][2])
-    zm = int(polygon[1][2])
-    zt = int(polygon[2][2])
+    # print("Y Values")
+    # print(yb, ym, yt)
+    
+    # print("Normals")
+    # print(vertexNorms)
+    # input()
 
     for i in range(supersample):
         for j in range(supersample):
@@ -88,9 +91,12 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
             nx0, ny0, nz0 = vertexNorms[BOT]
             nx1, ny1, nz1 = vertexNorms[BOT]
 
-            distance0 = yt - y * 1.0 + 1
-            distance1 = ym - y * 1.0 + 1
-            distance2 = (yt - ym) * 1.0 + 1
+            distance0 = yt * supersample + j - y + 1
+            distance1 = ym * supersample + j - y
+            distance2 = yt * supersample - ym * supersample + 1
+
+            # print("Distances:")
+            # print(distance0, distance1, distance2)
 
             dnx0 = (vertexNorms[TOP][0] - vertexNorms[BOT][0]) / distance0 if distance0 != 0 else 0
             dny0 = (vertexNorms[TOP][1] - vertexNorms[BOT][1]) / distance0 if distance0 != 0 else 0
@@ -99,15 +105,18 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
             dny1 = (vertexNorms[MID][1] - vertexNorms[BOT][1]) / distance1 if distance1 != 0 else 0
             dnz1 = (vertexNorms[MID][2] - vertexNorms[BOT][2]) / distance1 if distance1 != 0 else 0
 
+            # print("D Values:")
+            # print(dnx0, dny0, dnz0, dnx1, dny1, dnz1)
 
-            while y < ym *supersample + j:
+
+            while y < ym * supersample + j:
                 draw_scanline(int(x0), z0, int(x1), z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample)
                 if (xt != xb):
-                    x0 += (xt-xb)/(yt-yb)
+                    x0 += (xt-xb)/(yt-yb+1)
                 if (xm != xb):
                     x1 += (xm-xb)/(ym-yb)
                 if (zt != zb):
-                    z0 += (zt-zb)/(yt-yb)
+                    z0 += (zt-zb)/(yt-yb+1)
                 if (zm != zb):
                     z1 += (zm-zb)/(ym-yb)
                 y += 1
@@ -117,7 +126,9 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
                 nx1 += dnx1
                 ny1 += dny1
                 nz1 += dnz1
-
+            # print("MID:")
+            # print(nx0, ny0, nz0, nx1, ny1, nz1)
+            # input()
             x1 = xm * supersample + i
             z1 = zm
             nx1 = vertexNorms[MID][0]
@@ -126,17 +137,20 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
             dnx1 = (vertexNorms[TOP][0] - vertexNorms[MID][0]) / distance2 if distance2 != 0 else 0
             dny1 = (vertexNorms[TOP][1] - vertexNorms[MID][1]) / distance2 if distance2 != 0 else 0
             dnz1 = (vertexNorms[TOP][2] - vertexNorms[MID][2]) / distance2 if distance2 != 0 else 0
+            # print("MID POST SWITCH:")
+            # print(nx0, ny0, nz0, nx1, ny1, nz1)
+            # input()
 
-            while y < yt * supersample + j:
+            while y <= yt * supersample + j:
                 draw_scanline(int(x0), z0, int(x1), z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample)
                 if (xt != xb):
-                    x0 += (xt-xb)/(yt-yb)
+                    x0 += (xt-xb)/(yt-yb+1)
                 if (xt != xm):
-                    x1 += (xt-xm)/(yt-ym)
+                    x1 += (xt-xm)/(yt-ym+1)
                 if (zt != zb):
-                    z0 += (zt-zb)/(yt-yb)
+                    z0 += (zt-zb)/(yt-yb+1)
                 if (zt != zm):
-                    z1 += (zt-zm)/(yt-ym)
+                    z1 += (zt-zm)/(yt-ym+1)
                 y += 1
                 nx0 += dnx0
                 ny0 += dny0
@@ -144,6 +158,10 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
                 nx1 += dnx1
                 ny1 += dny1
                 nz1 += dnz1
+            draw_scanline(int(x0), z0, int(x1), z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample)
+            # print("FINAL:")
+            # print(nx0, ny0, nz0, nx1, ny1, nz1)
+            # input()
 
 
 def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
@@ -165,6 +183,8 @@ def draw_polygons( polygons, normalMap, screen, zbuffer, view, ambient, lights, 
         return
     t = view[0][:3]
     view = t[:]
+    view = [-x for x in view]
+    print(view)
 
     point = 0
     while point < len(polygons) - 2:
@@ -179,37 +199,9 @@ def draw_polygons( polygons, normalMap, screen, zbuffer, view, ambient, lights, 
 
     point = 0
     while point < len(polygons) - 2:
-
-        scanline_convert(polygons, normalMap, point, view, ambient, lights, symbols, reflect, screen, zbuffer)
-
-        # normal = calculate_normal(polygons, point)[:]
-
-        # if normal[2] > 0:
-
-        #     color = get_lighting(normal, view, ambient, lights, symbols, reflect )
-        #     scanline_convert(polygons, normalMap, point, screen, zbuffer, color)
-
-        #     # draw_line( int(polygons[point][0]),
-        #     #            int(polygons[point][1]),
-        #     #            polygons[point][2],
-        #     #            int(polygons[point+1][0]),
-        #     #            int(polygons[point+1][1]),
-        #     #            polygons[point+1][2],
-        #     #            screen, zbuffer, color)
-        #     # draw_line( int(polygons[point+2][0]),
-        #     #            int(polygons[point+2][1]),
-        #     #            polygons[point+2][2],
-        #     #            int(polygons[point+1][0]),
-        #     #            int(polygons[point+1][1]),
-        #     #            polygons[point+1][2],
-        #     #            screen, zbuffer, color)
-        #     # draw_line( int(polygons[point][0]),
-        #     #            int(polygons[point][1]),
-        #     #            polygons[point][2],
-        #     #            int(polygons[point+2][0]),
-        #     #            int(polygons[point+2][1]),
-        #     #            polygons[point+2][2],
-        #     #            screen, zbuffer, color)
+        normal = calculate_normal(polygons, point)[:]
+        if dot_product(normal, view) > 0:
+            scanline_convert(polygons, normalMap, point, view, ambient, lights, symbols, reflect, screen, zbuffer, supersample)
         point+= 3
 
 
@@ -281,7 +273,7 @@ def add_sphere(polygons, cx, cy, cz, r, step ):
                              points[p3][2])
 
 
-def generate_sphere( cx, cy, cz, r, step ):
+def generate_sphere( cx, cy, cz, r, step):
     points = []
 
     rot_start = 0
