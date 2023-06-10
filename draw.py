@@ -389,7 +389,7 @@ def add_curve( points, x0, y0, x1, y1, x2, y2, x3, y3, step, curve_type ):
         i+= 1
 
 
-def draw_lines( matrix, screen, zbuffer, color, supersample ):
+def draw_lines( matrix, screen, zbuffer, reduced_screen, color, supersample ):
     if len(matrix) < 2:
         print('Need at least 2 points to draw')
         return
@@ -402,7 +402,7 @@ def draw_lines( matrix, screen, zbuffer, color, supersample ):
                    int(matrix[point+1][0]),
                    int(matrix[point+1][1]),
                    matrix[point+1][2],
-                   screen, zbuffer, color, supersample)
+                   screen, zbuffer, reduced_screen, color, supersample)
         point+= 2
 
 def add_edge( matrix, x0, y0, z0, x1, y1, z1 ):
@@ -412,22 +412,25 @@ def add_edge( matrix, x0, y0, z0, x1, y1, z1 ):
 def add_point( matrix, x, y, z=0 ):
     matrix.append( [x, y, z, 1] )
 
-def reduce( screen, supersample ):
+def reduce( screen, reduced_screen, supersample ):
     ns = new_screen()
     zbuf = new_zbuffer()
     for i in range(int(len(screen)/supersample)):
         for j in range(int(len(screen)/supersample)):
-            val = [0, 0, 0]
-            for x in range(supersample):
-                for y in range(supersample):
-                    #print(val)
-                    val = [val[k] + screen[i*supersample+x][j*supersample+y][k] for k in range(3)]
-            val = [int(val[i] / (supersample**2)) for i in range(3)]
-            if val != [0, 0, 0]:
-                plot(ns, zbuf, val, j, 500-i, 0)
+            if reduced_screen[i][j]:
+                val = [0, 0, 0]
+                for x in range(supersample):
+                    for y in range(supersample):
+                        #print(val)
+                        val = [val[k] + screen[i*supersample+x][j*supersample+y][k] for k in range(3)]
+                val = [int(val[i] / (supersample**2)) for i in range(3)]
+                if val != [0, 0, 0]:
+                    plot(ns, zbuf, val, j, 500-1-i, 0)
+            else:
+                plot(ns, zbuf, screen[i*supersample][j*supersample], j, 500-1-i, 0)
     return ns
 
-def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color, supersample=1 ):
+def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, reduced_screen, color, supersample=1 ):
 
     #swap points if going right -> left
     if x0 > x1:
@@ -499,7 +502,8 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color, supersample=1 ):
             dz = (z1 - z0) / distance if distance != 0 else 0
 
             while ( loop_start < loop_end ):
-                plot( screen, zbuffer, color, x, y, z, 500*supersample, 500*supersample )
+                reduced_screen[500-1-int(y/supersample)][int(x/supersample)] = 1
+                plot( screen, zbuffer, color, x, y, z, supersample)
                 if ( (wide and ((A > 0 and d > 0) or (A < 0 and d < 0))) or
                      (tall and ((A > 0 and d < 0) or (A < 0 and d > 0 )))):
 
@@ -512,4 +516,5 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color, supersample=1 ):
                     d+= d_east
                 z+= dz
                 loop_start+= 1
-            plot( screen, zbuffer, color, x, y, z, 500*supersample, 500*supersample )
+            reduced_screen[500-1-int(y/supersample)][int(x/supersample)] = 1
+            plot( screen, zbuffer, color, x, y, z, supersample)

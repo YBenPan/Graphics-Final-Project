@@ -18,7 +18,7 @@ sphere shiny_teal 100 150 0 80
 push
 rotate x 45
 rotate y 45
-// box -40 40 40 80 80 80
+box -40 40 40 80 80 80
 pop
 push
 move 0 -150 0

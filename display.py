@@ -29,10 +29,12 @@ def new_zbuffer( width = XRES, height = YRES ):
         zb.append( row )
     return zb
 
-def plot( screen, zbuffer, color, x, y, z, width = XRES, height = YRES ):
+def plot( screen, zbuffer, color, x, y, z, supersample = 1 ):
+    width = XRES * supersample
+    height = YRES * supersample
     newy = height - 1 - y
     z = int((z * 1000)) / 1000.0
-    if ( x >= 0 and x < width and newy >= 0 and newy < height and zbuffer[newy][x] <= z):
+    if ( x >= 0 and x < width and newy >= 0 and newy < height and z - zbuffer[newy][x] >= -1):
         screen[newy][x] = color[:]
         zbuffer[newy][x] = z
 
