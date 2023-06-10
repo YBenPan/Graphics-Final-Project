@@ -1,4 +1,5 @@
 import mdl
+import os
 from display import *
 from matrix import *
 from draw import *
@@ -27,6 +28,9 @@ def run(filename):
     #          [255,
     #           255,
     #           255]]
+
+    # Create animation folder
+    os.makedirs("gif", exist_ok=True)
 
     color = [255, 255, 255]
     tmp = new_matrix()
