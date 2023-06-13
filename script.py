@@ -1,4 +1,5 @@
 import mdl
+import os
 from display import *
 from matrix import *
 from draw import *
@@ -28,9 +29,14 @@ def run(filename):
     #           255,
     #           255]]
 
+    # Create animation folder
+    os.makedirs("gif", exist_ok=True)
+
     color = [255, 255, 255]
     tmp = new_matrix()
     ident(tmp)
+    ident( tmp )
+    normalMap = {}
 
     stack = [ [x[:] for x in tmp] ]
     supersample = 2
@@ -126,12 +132,12 @@ def run(filename):
         tmp = []
 
         # Set camera
-        view = [[0, 0, 1, 1]]
+        view = [[0, 0, -1, 1]]
         viewing_transform = new_matrix() # Separate from all other transformation matrices
         ident(viewing_transform)
         stack = [[x[:] for x in viewing_transform]]
         if 'camera' in symbols:
-            # TODO: Check for transformation order: rotate or translate first?
+            # TODO: Fix rotate camera. Rotate camera first then translate
             if 'eye' in symbols['camera'][1]:
                 # Translate camera by taking the inverse of transformation in the model scene
                 eye_x, eye_y, eye_z = symbols['camera'][1]['eye']
@@ -144,6 +150,7 @@ def run(filename):
         for command in commands:
             c = command['op']
             args = command['args']
+            print(f"Processing: {c}")
 
             if c == 'box':
                 if command['constants']:
@@ -153,8 +160,9 @@ def run(filename):
                         args[3], args[4], args[5])
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
+                draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
+                normalMap = {}
                 reflect = '.white'
             elif c == 'sphere':
                 if command['constants']:
@@ -163,8 +171,9 @@ def run(filename):
                            args[0], args[1], args[2], args[3], step_3d)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
+                draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
+                normalMap = {}
                 reflect = '.white'
             elif c == 'torus':
                 if command['constants']:
@@ -173,16 +182,10 @@ def run(filename):
                           args[0], args[1], args[2], args[3], args[4], step_3d)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
+                draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
+                normalMap = {}
                 reflect = '.white'
-            elif c == 'line':
-                add_edge(tmp,
-                         args[0], args[1], args[2], args[3], args[4], args[5])
-                matrix_mult( viewing_transform, tmp)
-                matrix_mult( stack[-1], tmp )
-                draw_lines(tmp, screen, zbuffer, reduced_screen, color, supersample)
-                tmp = []
             elif c == 'mesh':
                 if command['constants']:
                     reflect = command['constants']
@@ -199,7 +202,15 @@ def run(filename):
                 add_mesh(tmp, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
+                draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
+                tmp = []
+                normalMap = {}
+            elif c == 'line':
+                add_edge(tmp,
+                         args[0], args[1], args[2], args[3], args[4], args[5])
+                matrix_mult( viewing_transform, tmp)
+                matrix_mult( stack[-1], tmp )
+                draw_lines(tmp, screen, zbuffer, color)
                 tmp = []
             elif c == 'move':
                 knob = command['knob'] if command['knob'] else None
@@ -240,6 +251,8 @@ def run(filename):
                 matrix_mult(tmp_view, view)
                 matrix_mult(viewing_transform, tmp)
                 viewing_transform = [x[:] for x in tmp]
+                # print("Viewing Transform:", viewing_transform)
+                # input()
                 tmp = []
             elif c == 'push':
                 stack.append([x[:] for x in stack[-1]] )

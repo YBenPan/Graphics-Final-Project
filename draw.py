@@ -1,41 +1,82 @@
 from display import *
 from matrix import *
 from gmath import *
+import json
 
-def draw_scanline(x0, z0, x1, z1, y, screen, zbuffer, reduced_screen, color, supersample):
+def draw_scanline(x0, z0, x1, z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample):
     if x0 > x1:
-        tx = x0
-        tz = z0
-        x0 = x1
-        z0 = z1
-        x1 = tx
-        z1 = tz
+        # tx = x0
+        # tz = z0
+        # x0 = x1
+        # z0 = z1
+        # x1 = tx
+        # z1 = tz
+        x0, x1 = x1, x0
+        z0, z1 = z1, z0
+        nx0, nx1 = nx1, nx0
+        ny0, ny1 = ny1, ny0
+        nz0, nz1 = nz1, nz0
 
+    dist_x = x1 - x0 + 1
     x = x0
     z = z0
-    delta_z = (z1 - z0) / (x1 - x0 + 1) if (x1 - x0 + 1) != 0 else 0
+    delta_z = (z1 - z0) / dist_x if dist_x != 0 else 0
+
+    nx = nx0
+    ny = ny0
+    nz = nz0
+    delta_nx = (nx1 - nx0) / dist_x if dist_x != 0 else 0
+    delta_ny = (ny1 - ny0) / dist_x if dist_x != 0 else 0
+    delta_nz = (nz1 - nz0) / dist_x if dist_x != 0 else 0
 
     while x <= x1:
-        plot(screen, zbuffer, color, x, y, z, supersample)
-        x+= 1
-        z+= delta_z
+        normal = [nx, ny, nz]
+        # Backface culling?
+        # if dot_product(normal, view) > 0:
+        if 1:
+            color = get_lighting(normal, view, ambient, lights, symbols, reflect )
+            plot(screen, zbuffer, color, x, y, z, supersample)
+        x += 1
+        z += delta_z
+        nx += delta_nx
+        ny += delta_ny
+        nz += delta_nz
 
-def scanline_convert(polygons, i, screen, zbuffer, reduced_screen, color, supersample ):
-    polygon = [polygons[i], polygons[i+1], polygons[i+2]]
+def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample):
+    flip = False
+    BOT = 0
+    TOP = 2
+    MID = 1
 
-    polygon.sort(key=lambda y: y[1])
+    points = [ (polygons[i][0], polygons[i][1], polygons[i][2]),
+               (polygons[i+1][0], polygons[i+1][1], polygons[i+1][2]),
+               (polygons[i+2][0], polygons[i+2][1], polygons[i+2][2]) ]
 
-    yb = int(polygon[0][1])
-    ym = int(polygon[1][1])
-    yt = int(polygon[2][1])
 
-    xb = int(polygon[0][0])
-    xm = int(polygon[1][0])
-    xt = int(polygon[2][0])
+    points.sort(key = lambda x: x[1])
+    vertexNorms = []
+    vertexNorms.append(vector_avg(normalMap[points[BOT]]))
+    vertexNorms.append(vector_avg(normalMap[points[MID]]))
+    vertexNorms.append(vector_avg(normalMap[points[TOP]]))
 
-    zb = int(polygon[0][2])
-    zm = int(polygon[1][2])
-    zt = int(polygon[2][2])
+    yb = int(points[0][1])
+    ym = int(points[1][1])
+    yt = int(points[2][1])
+
+    xb = int(points[0][0])
+    xm = int(points[1][0])
+    xt = int(points[2][0])
+
+    zb = int(points[0][2])
+    zm = int(points[1][2])
+    zt = int(points[2][2])
+
+    # print("Y Values")
+    # print(yb, ym, yt)
+    
+    # print("Normals")
+    # print(vertexNorms)
+    # input()
 
     for i in range(supersample):
         for j in range(supersample):
@@ -47,107 +88,117 @@ def scanline_convert(polygons, i, screen, zbuffer, reduced_screen, color, supers
 
             y = yb * supersample + j
 
-            #color = [(100 + i * 29) % 256, (140 + i * 13) % 256, (160 + i * 17) % 256]
+            nx0, ny0, nz0 = vertexNorms[BOT]
+            nx1, ny1, nz1 = vertexNorms[BOT]
+
+            distance0 = yt * supersample + j - y + 1
+            distance1 = ym * supersample + j - y
+            distance2 = yt * supersample - ym * supersample + 1
+
+            # print("Distances:")
+            # print(distance0, distance1, distance2)
+
+            dnx0 = (vertexNorms[TOP][0] - vertexNorms[BOT][0]) / distance0 if distance0 != 0 else 0
+            dny0 = (vertexNorms[TOP][1] - vertexNorms[BOT][1]) / distance0 if distance0 != 0 else 0
+            dnz0 = (vertexNorms[TOP][2] - vertexNorms[BOT][2]) / distance0 if distance0 != 0 else 0
+            dnx1 = (vertexNorms[MID][0] - vertexNorms[BOT][0]) / distance1 if distance1 != 0 else 0
+            dny1 = (vertexNorms[MID][1] - vertexNorms[BOT][1]) / distance1 if distance1 != 0 else 0
+            dnz1 = (vertexNorms[MID][2] - vertexNorms[BOT][2]) / distance1 if distance1 != 0 else 0
+
+            # print("D Values:")
+            # print(dnx0, dny0, dnz0, dnx1, dny1, dnz1)
 
 
-            while y < ym *supersample + j:
-                reduced_screen[500-1-int(y/supersample)][int(x0/supersample)] = 1
-                reduced_screen[500-1-int(y/supersample)][int(x1/supersample)] = 1
+            while y < ym * supersample + j:
+                # print(x0, x1, y)
+                # print(500-1-int(y/supersample), int(x0/supersample))
+                # input()
+                if 500-1-int(y/supersample) >= 0 and 500-1-int(y/supersample) < 500:
+                    if int(x0/supersample) > 0 and int(x0/supersample) < 500:
+                        reduced_screen[500-1-int(y/supersample)][int(x0/supersample)] = 1
+                    if int(x1/supersample) > 0 and int(x1/supersample) < 500:
+                        reduced_screen[500-1-int(y/supersample)][int(x1/supersample)] = 1
+                normal = [nx0, ny0, nz0]
+                normalize(normal)
+                color = get_lighting(normal, view, ambient, lights, symbols, reflect )
                 plot(screen, zbuffer, color, int(x0), int(y), z0, supersample)
+                normal = [nx1, ny1, nz1]
+                normalize(normal)
+                color = get_lighting(normal, view, ambient, lights, symbols, reflect )
                 plot(screen, zbuffer, color, int(x1), int(y), z1, supersample)
                 if i == 0:
                     if x0 < x1:
-                        draw_scanline(int(x0)+1, z0, int(x1)-1, z1, int(y), screen, zbuffer, reduced_screen, color, supersample)
+                        draw_scanline(int(x0)+1, z0, int(x1)-1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
                     else:
-                        draw_scanline(int(x0)-1, z0, int(x1)+1, z1, int(y), screen, zbuffer, reduced_screen, color, supersample)
+                        draw_scanline(int(x0)-1, z0, int(x1)+1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
                 if (xt != xb):
-                    x0 += (xt-xb)/(yt-yb)
+                    x0 += (xt-xb)/(yt-yb+1)
                 if (xm != xb):
                     x1 += (xm-xb)/(ym-yb)
                 if (zt != zb):
-                    z0 += (zt-zb)/(yt-yb)
+                    z0 += (zt-zb)/(yt-yb+1)
                 if (zm != zb):
                     z1 += (zm-zb)/(ym-yb)
                 y += 1
-            x1 = xm *supersample + i
+                nx0 += dnx0
+                ny0 += dny0
+                nz0 += dnz0
+                nx1 += dnx1
+                ny1 += dny1
+                nz1 += dnz1
+            # print("MID:")
+            # print(nx0, ny0, nz0, nx1, ny1, nz1)
+            # input()
+            x1 = xm * supersample + i
             z1 = zm
-            while y < yt * supersample + j:
-                reduced_screen[500-1-int(y/supersample)][int(x0/supersample)] = 1
-                reduced_screen[500-1-int(y/supersample)][int(x1/supersample)] = 1
+            nx1 = vertexNorms[MID][0]
+            ny1 = vertexNorms[MID][1]
+            nz1 = vertexNorms[MID][2]
+            dnx1 = (vertexNorms[TOP][0] - vertexNorms[MID][0]) / distance2 if distance2 != 0 else 0
+            dny1 = (vertexNorms[TOP][1] - vertexNorms[MID][1]) / distance2 if distance2 != 0 else 0
+            dnz1 = (vertexNorms[TOP][2] - vertexNorms[MID][2]) / distance2 if distance2 != 0 else 0
+            # print("MID POST SWITCH:")
+            # print(nx0, ny0, nz0, nx1, ny1, nz1)
+            # input()
+
+            while y <= yt * supersample + j:
+                if 500-1-int(y/supersample) >= 0 and 500-1-int(y/supersample) < 500:
+                    if int(x0/supersample) >= 0 and int(x0/supersample) < 500:
+                        reduced_screen[500-1-int(y/supersample)][int(x0/supersample)] = 1
+                    if int(x1/supersample) >= 0 and int(x1/supersample) < 500:
+                        reduced_screen[500-1-int(y/supersample)][int(x1/supersample)] = 1
+                normal = [nx0, ny0, nz0]
+                normalize(normal)
+                color = get_lighting(normal, view, ambient, lights, symbols, reflect )
                 plot(screen, zbuffer, color, int(x0), int(y), z0, supersample)
+                normal = [nx1, ny1, nz1]
+                normalize(normal)
+                color = get_lighting(normal, view, ambient, lights, symbols, reflect )
                 plot(screen, zbuffer, color, int(x1), int(y), z1, supersample)
                 if i == 0:
                     if x0 < x1:
-                        draw_scanline(int(x0)+1, z0, int(x1)-1, z1, int(y), screen, zbuffer, reduced_screen, color, supersample)
+                        draw_scanline(int(x0)+1, z0, int(x1)-1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
                     else:
-                        draw_scanline(int(x0)-1, z0, int(x1)+1, z1, int(y), screen, zbuffer, reduced_screen, color, supersample)
+                        draw_scanline(int(x0)-1, z0, int(x1)+1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
                 if (xt != xb):
-                    x0 += (xt-xb)/(yt-yb)
+                    x0 += (xt-xb)/(yt-yb+1)
                 if (xt != xm):
-                    x1 += (xt-xm)/(yt-ym)
+                    x1 += (xt-xm)/(yt-ym+1)
                 if (zt != zb):
-                    z0 += (zt-zb)/(yt-yb)
+                    z0 += (zt-zb)/(yt-yb+1)
                 if (zt != zm):
-                    z1 += (zt-zm)/(yt-ym)
+                    z1 += (zt-zm)/(yt-ym+1)
                 y += 1
-
-# def scanline_convert(polygons, i, screen, zbuffer, color, supersample):
-#     flip = False
-#     BOT = 0
-#     TOP = 2
-#     MID = 1
-#
-#     points = [ (polygons[i][0], polygons[i][1], polygons[i][2]),
-#                (polygons[i+1][0], polygons[i+1][1], polygons[i+1][2]),
-#                (polygons[i+2][0], polygons[i+2][1], polygons[i+2][2]) ]
-#
-#     # alas random color, we hardly knew ye
-#     #color = [0,0,0]
-#     #color[RED] = (23*(i/3)) %256
-#     #color[GREEN] = (109*(i/3)) %256
-#     #color[BLUE] = (227*(i/3)) %256
-#
-#     points.sort(key = lambda x: x[1])
-#     x0 = points[BOT][0]
-#     z0 = points[BOT][2]
-#     x1 = points[BOT][0]
-#     z1 = points[BOT][2]
-#
-#     x0orig = x0
-#     x1orig = x1
-#     for i in range(supersample):
-#         for j in range(supersample):
-#             x0 = x0orig*supersample+i
-#             x1 = x1orig*supersample+i
-#
-#             y = int(points[BOT][1])*supersample+j
-#
-#             distance0 = int(points[TOP][1]) - y * 1.0 * supersample + 1
-#             distance1 = int(points[MID][1]) - y * 1.0 * supersample + 1
-#             distance2 = int(points[TOP][1]) - int(points[MID][1]) * 1.0 * supersample + 1
-#
-#             dx0 = (points[TOP][0] - points[BOT][0]) * supersample / distance0 if distance0 != 0 else 0
-#             dz0 = (points[TOP][2] - points[BOT][2]) * supersample / distance0 if distance0 != 0 else 0
-#             dx1 = (points[MID][0] - points[BOT][0]) * supersample / distance1 if distance1 != 0 else 0
-#             dz1 = (points[MID][2] - points[BOT][2]) * supersample / distance1 if distance1 != 0 else 0
-#
-#             while y <= int(points[TOP][1]):
-#                 if ( not flip and y >= int(points[MID][1])):
-#                     flip = True
-#
-#                     dx1 = (points[TOP][0] - points[MID][0]) * supersample / distance2 if distance2 != 0 else 0
-#                     dz1 = (points[TOP][2] - points[MID][2]) * supersample / distance2 if distance2 != 0 else 0
-#                     x1 = points[MID][0]*supersample+i
-#                     z1 = points[MID][2]
-#
-#                 #draw_line(int(x0), y, z0, int(x1), y, z1, screen, zbuffer, color)
-#                 draw_scanline(int(x0), z0, int(x1), z1, y, screen, zbuffer, color, supersample)
-#                 x0+= dx0
-#                 z0+= dz0
-#                 x1+= dx1
-#                 z1+= dz1
-#                 y+= 1
-
+                nx0 += dnx0
+                ny0 += dny0
+                nz0 += dnz0
+                nx1 += dnx1
+                ny1 += dny1
+                nz1 += dnz1
+            draw_scanline(int(x0), z0, int(x1), z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
+            # print("FINAL:")
+            # print(nx0, ny0, nz0, nx1, ny1, nz1)
+            # input()
 
 
 def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
@@ -163,45 +214,31 @@ def add_mesh( polygons, vertexList, faceList):
         x2, y2, z2 = vertexList[face[2]]
         add_polygon(polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2)
 
-def draw_polygons( polygons, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample):
+def draw_polygons( polygons, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample):
     if len(polygons) < 2:
         print('Need at least 3 points to draw')
         return
     t = view[0][:3]
     view = t[:]
+    view = [-x for x in view]
+    # print(view)
 
     point = 0
     while point < len(polygons) - 2:
-
         normal = calculate_normal(polygons, point)[:]
+        x0, y0, z0 = polygons[point][:3]
+        x1, y1, z1 = polygons[point + 1][:3]
+        x2, y2, z2 = polygons[point + 2][:3]
+        normalMap[(x0, y0, z0)] = normalMap.get((x0, y0, z0), []) + [normal]
+        normalMap[(x1, y1, z1)] = normalMap.get((x1, y1, z1), []) + [normal]
+        normalMap[(x2, y2, z2)] = normalMap.get((x2, y2, z2), []) + [normal]
+        point += 3
 
-        #print normal
-        if normal[2] > 0:
-
-            color = get_lighting(normal, view, ambient, lights, symbols, reflect )
-            scanline_convert(polygons, point, screen, zbuffer, reduced_screen, color, supersample)
-
-            # draw_line( int(polygons[point][0]),
-            #            int(polygons[point][1]),
-            #            polygons[point][2],
-            #            int(polygons[point+1][0]),
-            #            int(polygons[point+1][1]),
-            #            polygons[point+1][2],
-            #            screen, zbuffer, color)
-            # draw_line( int(polygons[point+2][0]),
-            #            int(polygons[point+2][1]),
-            #            polygons[point+2][2],
-            #            int(polygons[point+1][0]),
-            #            int(polygons[point+1][1]),
-            #            polygons[point+1][2],
-            #            screen, zbuffer, color)
-            # draw_line( int(polygons[point][0]),
-            #            int(polygons[point][1]),
-            #            polygons[point][2],
-            #            int(polygons[point+2][0]),
-            #            int(polygons[point+2][1]),
-            #            polygons[point+2][2],
-            #            screen, zbuffer, color)
+    point = 0
+    while point < len(polygons) - 2:
+        normal = calculate_normal(polygons, point)[:]
+        if dot_product(normal, view) > 0:
+            scanline_convert(polygons, normalMap, point, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
         point+= 3
 
 
@@ -250,7 +287,8 @@ def add_sphere(polygons, cx, cy, cz, r, step ):
             p3 = (p0+step) % (step * (step-1))
 
             if longt != step - 2:
-                add_polygon( polygons, points[p0][0],
+                add_polygon( polygons,  
+                             points[p0][0],
                              points[p0][1],
                              points[p0][2],
                              points[p1][0],
@@ -260,7 +298,8 @@ def add_sphere(polygons, cx, cy, cz, r, step ):
                              points[p2][1],
                              points[p2][2])
             if longt != 0:
-                add_polygon( polygons, points[p0][0],
+                add_polygon( polygons, 
+                             points[p0][0],
                              points[p0][1],
                              points[p0][2],
                              points[p2][0],
@@ -271,7 +310,7 @@ def add_sphere(polygons, cx, cy, cz, r, step ):
                              points[p3][2])
 
 
-def generate_sphere( cx, cy, cz, r, step ):
+def generate_sphere( cx, cy, cz, r, step):
     points = []
 
     rot_start = 0
@@ -303,13 +342,13 @@ def add_torus(polygons, cx, cy, cz, r0, r1, step ):
     for lat in range(lat_start, lat_stop):
         for longt in range(longt_start, longt_stop):
 
-            p0 = lat * step + longt;
+            p0 = lat * step + longt
             if (longt == (step - 1)):
-                p1 = p0 - longt;
+                p1 = p0 - longt
             else:
-                p1 = p0 + 1;
-            p2 = (p1 + step) % (step * step);
-            p3 = (p0 + step) % (step * step);
+                p1 = p0 + 1
+            p2 = (p1 + step) % (step * step)
+            p3 = (p0 + step) % (step * step)
 
             add_polygon(polygons,
                         points[p0][0],
@@ -345,9 +384,9 @@ def generate_torus( cx, cy, cz, r0, r1, step ):
         for circle in range(circ_start, circ_stop):
             circ = circle/float(step)
 
-            x = math.cos(2*math.pi * rot) * (r0 * math.cos(2*math.pi * circ) + r1) + cx;
-            y = r0 * math.sin(2*math.pi * circ) + cy;
-            z = -1*math.sin(2*math.pi * rot) * (r0 * math.cos(2*math.pi * circ) + r1) + cz;
+            x = math.cos(2*math.pi * rot) * (r0 * math.cos(2*math.pi * circ) + r1) + cx
+            y = r0 * math.sin(2*math.pi * circ) + cy
+            z = -1*math.sin(2*math.pi * rot) * (r0 * math.cos(2*math.pi * circ) + r1) + cz
 
             points.append([x, y, z])
     return points
@@ -360,8 +399,8 @@ def add_circle( points, cx, cy, cz, r, step ):
 
     while i <= step:
         t = float(i)/step
-        x1 = r * math.cos(2*math.pi * t) + cx;
-        y1 = r * math.sin(2*math.pi * t) + cy;
+        x1 = r * math.cos(2*math.pi * t) + cx
+        y1 = r * math.sin(2*math.pi * t) + cy
 
         add_edge(points, x0, y0, cz, x1, y1, cz)
         x0 = x1
