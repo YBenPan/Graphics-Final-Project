@@ -73,7 +73,7 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
 
     # print("Y Values")
     # print(yb, ym, yt)
-    
+
     # print("Normals")
     # print(vertexNorms)
     # input()
@@ -126,7 +126,7 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
                 normalize(normal)
                 color = get_lighting(normal, view, ambient, lights, symbols, reflect )
                 plot(screen, zbuffer, color, int(x1), int(y), z1, supersample)
-                if i == 0:
+                if i == 0 and j == 0 or y == ym * supersample + j - 1:
                     if x0 < x1:
                         draw_scanline(int(x0)+1, z0, int(x1)-1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
                     else:
@@ -175,7 +175,7 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
                 normalize(normal)
                 color = get_lighting(normal, view, ambient, lights, symbols, reflect )
                 plot(screen, zbuffer, color, int(x1), int(y), z1, supersample)
-                if i == 0:
+                if i == 0 and j == 0 or y == ym * supersample + j - 1:
                     if x0 < x1:
                         draw_scanline(int(x0)+1, z0, int(x1)-1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
                     else:
@@ -287,7 +287,7 @@ def add_sphere(polygons, cx, cy, cz, r, step ):
             p3 = (p0+step) % (step * (step-1))
 
             if longt != step - 2:
-                add_polygon( polygons,  
+                add_polygon( polygons,
                              points[p0][0],
                              points[p0][1],
                              points[p0][2],
@@ -298,7 +298,7 @@ def add_sphere(polygons, cx, cy, cz, r, step ):
                              points[p2][1],
                              points[p2][2])
             if longt != 0:
-                add_polygon( polygons, 
+                add_polygon( polygons,
                              points[p0][0],
                              points[p0][1],
                              points[p0][2],
