@@ -158,8 +158,8 @@ def run(filename):
                 add_box(tmp,
                         args[0], args[1], args[2],
                         args[3], args[4], args[5])
-                matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
+                matrix_mult( viewing_transform, tmp)
                 draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
                 normalMap = {}
@@ -169,8 +169,8 @@ def run(filename):
                     reflect = command['constants']
                 add_sphere(tmp,
                            args[0], args[1], args[2], args[3], step_3d)
-                matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
+                matrix_mult( viewing_transform, tmp)
                 draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
                 normalMap = {}
@@ -180,8 +180,8 @@ def run(filename):
                     reflect = command['constants']
                 add_torus(tmp,
                           args[0], args[1], args[2], args[3], args[4], step_3d)
-                matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
+                matrix_mult( viewing_transform, tmp)
                 draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
                 normalMap = {}
@@ -255,8 +255,8 @@ def run(filename):
                             for j in range(1, len(v_indices) - 1):
                                 faceList.append([v_indices[0] - 1, v_indices[j] - 1, v_indices[j + 1] - 1])
                 add_mesh(tmp, vertexList, faceList)
-                matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
+                matrix_mult( viewing_transform, tmp)
                 draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
                 normalMap = {}
