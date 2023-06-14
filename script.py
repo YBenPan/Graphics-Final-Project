@@ -73,8 +73,8 @@ def run(filename):
     print("All symbols:")
     print(symbols)
     print()
-    print("Press any key to continue...")
-    input()
+    # print("Press any key to continue...")
+    # input()
 
     # Pass 0
     for command in commands:
@@ -150,7 +150,7 @@ def run(filename):
         for command in commands:
             c = command['op']
             args = command['args']
-            #print(f"Processing: {c}")
+            print(f"Processing: {c}")
 
             if c == 'box':
                 if command['constants']:

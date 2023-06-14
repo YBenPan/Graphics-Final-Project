@@ -11,17 +11,17 @@ RED = 0
 GREEN = 1
 BLUE = 2
 
-DEFAULT_COLOR = [135, 206, 235] #[255, 255, 255]
+# DEFAULT_COLOR = [255, 255, 255]
+START_COLOR = [44, 103, 242]
+END_COLOR = [98, 207, 244]
 
 def new_screen( width = XRES, height = YRES ):
     screen = []
     for y in range( height ):
         row = []
         screen.append( row )
-        #print([DEFAULT_COLOR[i] * y / 500 for i in range(3)])
         for x in range( width ):
-            #screen[y].append( [DEFAULT_COLOR[i] * y / 500 for i in range(3)] )
-            screen[y].append( DEFAULT_COLOR[:] )
+            screen[y].append( [ int(START_COLOR[i] + (END_COLOR[i] - START_COLOR[i]) * y / 500) for i in range(3)])
     return screen
 
 def new_zbuffer( width = XRES, height = YRES ):
@@ -43,7 +43,7 @@ def plot( screen, zbuffer, color, x, y, z, supersample = 1 ):
 def clear_screen( screen ):
     for y in range( len(screen) ):
         for x in range( len(screen[y]) ):
-            screen[y][x] = DEFAULT_COLOR[:]
+            screen[y][x] = [ int(START_COLOR[i] + (END_COLOR[i] - START_COLOR[i]) * y / 500) for i in range(3)]
 
 def clear_zbuffer( zb ):
     for y in range( len(zb) ):

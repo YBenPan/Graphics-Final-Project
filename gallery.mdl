@@ -4,21 +4,24 @@ constants dull_yellow 0.3 0.8 0.2 0.3 0.8 0.2 0 0 0
 camera 0 0 0
 // ambient 50 50 50
 // light light1 0.5 0.75 1 255 255 255
-// light light2 0 0 1 255 255 0
+light light2 1 0.5 1 252 248 169
 basename airplane
-// frames 20
-frames 1
+frames 20
 push
-move 100 250 400
+move 250 -20 0
+scale 100 120 100
+mesh :mount
+pop
+push
+move 100 350 400
 scale 0.1 0.1 0.1
 move 2000 0 0
-// rotate y 360 knobby
-// vary knobby 0 20 0 1
-// sphere shiny_teal -2000 0 0 400
+rotate y 360 knobby
+vary knobby 0 20 0 1
 move -2000 0 0
-// rotate y 90
-// rotate x -120
-// rotate z 180
+rotate y 90
+rotate x -120
+rotate z 180
 mesh :airplane
 pop
 display
