@@ -197,17 +197,11 @@ def run(filename):
                         line = line.rstrip()
                         if line[:2] == 'v ':
                             vertexList.append([float(coord) for coord in line[2:].split()])
-                        # elif line[:2] == 'f ':
-                        #     vertices = line[2:].split()
-                        #     v_indices = [int(str.split('/')[0]) for str in vertices]
-                        #     print(vertices, v_indices)
-                        #     # input()
-                        #     if len(v_indices) == 3:
-                        #         # faceList.append([int(vertex_index) - 1 for vertex_index in v_indices)
-                        #         faceList.append([v_indices[0] - 1, v_indices[1] - 1, v_indices[2] - 1])
-                        #     elif len(v_indices) == 4:
-                        #         faceList.append([v_indices[0] - 1, v_indices[1] - 1, v_indices[2] - 1])
-                        #         faceList.append([v_indices[0] - 1, v_indices[1] - 1, v_indices[3] - 1])
+                        elif line[:2] == 'f ':
+                            vertices = line[2:].split()
+                            v_indices = [int(str.split('/')[0]) for str in vertices]
+                            for j in range(1, len(v_indices) - 1):
+                                faceList.append([v_indices[0] - 1, v_indices[j] - 1, v_indices[j + 1] - 1])
                 add_mesh(tmp, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
