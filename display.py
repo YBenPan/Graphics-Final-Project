@@ -36,7 +36,7 @@ def plot( screen, zbuffer, color, x, y, z, supersample = 1 ):
     height = YRES * supersample
     newy = height - 1 - y
     z = int((z * 1000)) / 1000.0
-    if ( x >= 0 and x < width and newy >= 0 and newy < height and z - zbuffer[newy][x] >= -1):
+    if ( x >= 0 and x < width and newy >= 0 and newy < height and z - zbuffer[newy][x] >= 0):
         screen[newy][x] = color[:]
         zbuffer[newy][x] = z
 
@@ -97,7 +97,7 @@ def display( screen ):
     img.show()
 
 def convert_to_gif( basename, gif ):
-    os.system("magick -delay 20 %s* %s" % (basename, gif))
+    os.system("magick -delay 10 %s* %s" % (basename, gif))
 
 def show_gif( gif ):
     os.system("open %s" % gif)

@@ -323,7 +323,11 @@ def run(filename):
                 elif c == 'save':
                     save_extension(screen, args[0])
         if frames > 1:
-            save_extension(screen, 'gif/' + basename + ('%d.png' % fr).zfill(8))
+            if supersample > 1:
+                save_screen = reduce(screen, reduced_screen, supersample)
+                save_extension(save_screen, 'gif/' + basename + ('%d.png' % fr).zfill(8))
+            else:
+                save_extension(screen, 'gif/' + basename + ('%d.png' % fr).zfill(8))
         else:
             save_extension(screen, 'image.png')
     if frames > 1:

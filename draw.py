@@ -457,8 +457,7 @@ def reduce( screen, reduced_screen, supersample ):
                         #print(val)
                         val = [val[k] + screen[i*supersample+x][j*supersample+y][k] for k in range(3)]
                 val = [int(val[i] / (supersample**2)) for i in range(3)]
-                if val != [0, 0, 0]:
-                    plot(ns, zbuf, val, j, 500-1-i, 0)
+                plot(ns, zbuf, val, j, 500-1-i, 0)
             else:
                 plot(ns, zbuf, screen[i*supersample][j*supersample], j, 500-1-i, 0)
     return ns
