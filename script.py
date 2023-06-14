@@ -39,7 +39,7 @@ def run(filename):
     normalMap = {}
 
     stack = [ [x[:] for x in tmp] ]
-    supersample = 2
+    supersample = 1
     screen = new_screen(500*supersample, 500*supersample)
     zbuffer = new_zbuffer(500*supersample, 500*supersample)
     reduced_screen = [[0 for x in range(500)] for y in range(500)]
@@ -193,12 +193,21 @@ def run(filename):
                 vertexList = []
                 faceList = []
                 with open(filename) as file:
-                    for line in file:
+                    for i, line in enumerate(file):
                         line = line.rstrip()
                         if line[:2] == 'v ':
                             vertexList.append([float(coord) for coord in line[2:].split()])
-                        elif line[:2] == 'f ':
-                            faceList.append([int(vertex) - 1 for vertex in line[2:].split()])
+                        # elif line[:2] == 'f ':
+                        #     vertices = line[2:].split()
+                        #     v_indices = [int(str.split('/')[0]) for str in vertices]
+                        #     print(vertices, v_indices)
+                        #     # input()
+                        #     if len(v_indices) == 3:
+                        #         # faceList.append([int(vertex_index) - 1 for vertex_index in v_indices)
+                        #         faceList.append([v_indices[0] - 1, v_indices[1] - 1, v_indices[2] - 1])
+                        #     elif len(v_indices) == 4:
+                        #         faceList.append([v_indices[0] - 1, v_indices[1] - 1, v_indices[2] - 1])
+                        #         faceList.append([v_indices[0] - 1, v_indices[1] - 1, v_indices[3] - 1])
                 add_mesh(tmp, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
@@ -261,8 +270,9 @@ def run(filename):
             if frames == 1:
                 if c == 'display':
                     display(screen)
-                    screen = reduce(screen, reduced_screen, supersample)
-                    display(screen)
+                    if supersample > 1:
+                        screen = reduce(screen, reduced_screen, supersample)
+                        display(screen)
                 elif c == 'save':
                     save_extension(screen, args[0])
         if frames > 1:

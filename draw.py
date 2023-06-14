@@ -208,11 +208,13 @@ def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
 
 
 def add_mesh( polygons, vertexList, faceList):
-    for face in faceList:
+    for i, face in enumerate(faceList):
         x0, y0, z0 = vertexList[face[0]]
         x1, y1, z1 = vertexList[face[1]]
         x2, y2, z2 = vertexList[face[2]]
         add_polygon(polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2)
+        if i % 1000 == 0:
+            print(i)
 
 def draw_polygons( polygons, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample):
     if len(polygons) < 2:
