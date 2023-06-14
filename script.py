@@ -238,11 +238,12 @@ def run(filename):
                         line = line.rstrip()
                         if len(line) >= 6 and line[:6] == 'usemtl':
                             if len(faceList) > 0:
-                                print(f"Done: {reflect}")
                                 add_mesh(tmp, vertexList, faceList)
                                 matrix_mult( viewing_transform, tmp)
                                 matrix_mult( stack[-1], tmp )
+                                # print("ADD MESH DONE")
                                 draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
+                                print(f"Done: {reflect}")
                                 faceList = []
                                 tmp = []
                                 normalMap = {}
