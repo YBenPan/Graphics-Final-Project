@@ -11,14 +11,16 @@ RED = 0
 GREEN = 1
 BLUE = 2
 
-DEFAULT_COLOR = [0, 0, 0] #[255, 255, 255]
+DEFAULT_COLOR = [135, 206, 235] #[255, 255, 255]
 
 def new_screen( width = XRES, height = YRES ):
     screen = []
     for y in range( height ):
         row = []
         screen.append( row )
+        #print([DEFAULT_COLOR[i] * y / 500 for i in range(3)])
         for x in range( width ):
+            #screen[y].append( [DEFAULT_COLOR[i] * y / 500 for i in range(3)] )
             screen[y].append( DEFAULT_COLOR[:] )
     return screen
 

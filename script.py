@@ -121,9 +121,9 @@ def run(filename):
             for i in range(start_frame+1, end_frame):
                 knoblist[i][knob] = start_value + value_delta * i
 
-    for i in range(frames):
+    for fr in range(frames):
         if frames > 1:
-            knobs = knoblist[i]
+            knobs = knoblist[fr]
             for knob in knobs.keys():
                 symbols[knob] = ['knob', knobs[knob]]
         clear_screen( screen )
@@ -150,7 +150,7 @@ def run(filename):
         for command in commands:
             c = command['op']
             args = command['args']
-            print(f"Processing: {c}")
+            #print(f"Processing: {c}")
 
             if c == 'box':
                 if command['constants']:
@@ -228,11 +228,11 @@ def run(filename):
                                         symbols[m_name][1]['spec_exp'] = float(m_line[3:])
                         elif line[:2] == 'v ':
                             vertexList.append([float(coord) for coord in line[2:].split()])
-                print("Symbol table after importing the MTL file:")
-                print(symbols)
-                print()
-                print("Press any key to continue...")
-                input()
+                # print("Symbol table after importing the MTL file:")
+                # print(symbols)
+                # print()
+                # print("Press any key to continue...")
+                # input()
                 with open(filename) as file:
                     for i, line in enumerate(file):
                         line = line.rstrip()
@@ -243,7 +243,7 @@ def run(filename):
                                 matrix_mult( stack[-1], tmp )
                                 # print("ADD MESH DONE")
                                 draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
-                                print(f"Done: {reflect}")
+                                #print(f"Done: {reflect}")
                                 faceList = []
                                 tmp = []
                                 normalMap = {}
@@ -323,9 +323,9 @@ def run(filename):
                 elif c == 'save':
                     save_extension(screen, args[0])
         if frames > 1:
-            save_extension(screen, 'gif/' + basename + ('%d.png' % i).zfill(8))
+            save_extension(screen, 'gif/' + basename + ('%d.png' % fr).zfill(8))
         else:
             save_extension(screen, 'image.png')
     if frames > 1:
-        convert_to_gif(basename, 'animated.gif')
+        convert_to_gif('gif/' + basename, 'animated.gif')
         show_gif('animated.gif')

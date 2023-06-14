@@ -6,15 +6,19 @@ camera 0 0 0
 // light light1 0.5 0.75 1 255 255 255
 // light light2 0 0 1 255 255 0
 basename airplane
-frames 5
+// frames 20
+frames 1
 push
-move 100 250 0
+move 100 250 400
 scale 0.1 0.1 0.1
-rotate y 60
-rotate x -120
-rotate y 240 knobby
-move 200 0 0 knobby
-vary knobby 0 4 0 1
+move 2000 0 0
+// rotate y 360 knobby
+// vary knobby 0 20 0 1
+// sphere shiny_teal -2000 0 0 400
+move -2000 0 0
+// rotate y 90
+// rotate x -120
+// rotate z 180
 mesh :airplane
 pop
 display
