@@ -5,12 +5,6 @@ import json
 
 def draw_scanline(x0, z0, x1, z1, y, nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample):
     if x0 > x1:
-        # tx = x0
-        # tz = z0
-        # x0 = x1
-        # z0 = z1
-        # x1 = tx
-        # z1 = tz
         x0, x1 = x1, x0
         z0, z1 = z1, z0
         nx0, nx1 = nx1, nx0
@@ -91,9 +85,9 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
             nx0, ny0, nz0 = vertexNorms[BOT]
             nx1, ny1, nz1 = vertexNorms[BOT]
 
-            distance0 = yt * supersample + j - y + 1
-            distance1 = ym * supersample + j - y
-            distance2 = yt * supersample - ym * supersample + 1
+            distance0 = (yt-yb) * supersample
+            distance1 = (ym-yb) * supersample
+            distance2 = (yt-ym) * supersample
 
             # print("Distances:")
             # print(distance0, distance1, distance2)
@@ -132,13 +126,13 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
                     else:
                         draw_scanline(int(x0)-1, z0, int(x1)+1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
                 if (xt != xb):
-                    x0 += (xt-xb)/(yt-yb+1)
+                    x0 += (xt-xb)/(yt-yb)
                 if (xm != xb):
                     x1 += (xm-xb)/(ym-yb)
                 if (zt != zb):
-                    z0 += (zt-zb)/(yt-yb+1)
+                    z0 += (zt-zb)/((yt-yb)*supersample)
                 if (zm != zb):
-                    z1 += (zm-zb)/(ym-yb)
+                    z1 += (zm-zb)/((ym-yb)*supersample)
                 y += 1
                 nx0 += dnx0
                 ny0 += dny0
@@ -161,7 +155,7 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
             # print(nx0, ny0, nz0, nx1, ny1, nz1)
             # input()
 
-            while y <= yt * supersample + j:
+            while y < yt * supersample + j:
                 if 500-1-int(y/supersample) >= 0 and 500-1-int(y/supersample) < 500:
                     if int(x0/supersample) >= 0 and int(x0/supersample) < 500:
                         reduced_screen[500-1-int(y/supersample)][int(x0/supersample)] = 1
@@ -181,13 +175,13 @@ def scanline_convert(polygons, normalMap, i, view, ambient, lights, symbols, ref
                     else:
                         draw_scanline(int(x0)-1, z0, int(x1)+1, z1, int(y), nx0, ny0, nz0, nx1, ny1, nz1, view, ambient, lights, symbols, reflect, screen, zbuffer, reduced_screen, supersample)
                 if (xt != xb):
-                    x0 += (xt-xb)/(yt-yb+1)
+                    x0 += (xt-xb)/(yt-yb)
                 if (xt != xm):
-                    x1 += (xt-xm)/(yt-ym+1)
+                    x1 += (xt-xm)/(yt-ym)
                 if (zt != zb):
-                    z0 += (zt-zb)/(yt-yb+1)
+                    z0 += (zt-zb)/(supersample*(yt-yb))
                 if (zt != zm):
-                    z1 += (zt-zm)/(yt-ym+1)
+                    z1 += (zt-zm)/((yt-ym)*supersample)
                 y += 1
                 nx0 += dnx0
                 ny0 += dny0

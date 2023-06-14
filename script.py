@@ -204,9 +204,9 @@ def run(filename):
                                     m_line = m_line.strip()
                                     if len(m_line) >= 6 and m_line[:6] == 'newmtl':
                                         m_name = m_line[7:]
-                                        symbols[m_name] = ['constants', 
-                                                           {'red' : [0.2, 0.5, 0.5], 
-                                                            'green' : [0.2, 0.5, 0.5], 
+                                        symbols[m_name] = ['constants',
+                                                           {'red' : [0.2, 0.5, 0.5],
+                                                            'green' : [0.2, 0.5, 0.5],
                                                             'blue' : [0.2, 0.5, 0.5],
                                                             'spec_coeff': SPECULAR_EXP}]
                                     elif len(m_line) >= 4 and m_line[:2] == 'Ka':
@@ -224,8 +224,8 @@ def run(filename):
                                         symbols[m_name][1]['red'][2] = float(coeffs[0])
                                         symbols[m_name][1]['green'][2] = float(coeffs[1])
                                         symbols[m_name][1]['blue'][2] = float(coeffs[2])
-                                    elif len(m_line) >= 4 and m_line[:2] == 'Ns':  
-                                        symbols[m_name][1]['spec_exp'] = float(m_line[3:])                
+                                    elif len(m_line) >= 4 and m_line[:2] == 'Ns':
+                                        symbols[m_name][1]['spec_exp'] = float(m_line[3:])
                         elif line[:2] == 'v ':
                             vertexList.append([float(coord) for coord in line[2:].split()])
                 print("Symbol table after importing the MTL file:")
@@ -244,13 +244,15 @@ def run(filename):
                                 matrix_mult( stack[-1], tmp )
                                 draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                                 faceList = []
+                                tmp = []
+                                normalMap = {}
                             mtl_name = line[7:]
                             reflect = mtl_name
                         elif line[:2] == 'f ':
                             vertices = line[2:].split()
                             v_indices = [int(str.split('/')[0]) for str in vertices]
                             for j in range(1, len(v_indices) - 1):
-                                faceList.append([v_indices[0] - 1, v_indices[j] - 1, v_indices[j + 1] - 1])                            
+                                faceList.append([v_indices[0] - 1, v_indices[j] - 1, v_indices[j + 1] - 1])
                 add_mesh(tmp, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )

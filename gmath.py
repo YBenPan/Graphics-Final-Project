@@ -89,7 +89,7 @@ def normalize(vector):
                            vector[1] * vector[1] +
                            vector[2] * vector[2])
     for i in range(3):
-        vector[i] = vector[i] / magnitude
+        vector[i] = vector[i] / magnitude if magnitude != 0 else 0
 
 #Return the dot porduct of a . b
 def dot_product(a, b):
