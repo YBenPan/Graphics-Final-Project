@@ -29,7 +29,7 @@ def get_lighting(normal, view, ambient, lights, symbols, reflect ):
 
     a = calculate_ambient(ambient, r)
     d = calculate_diffuse(lights, r, n)
-    s = calculate_specular(lights, r, view, n)
+    s = calculate_specular(lights, r, view, n, exp=r['spec_exp'] if 'spec_exp' in r else SPECULAR_EXP)
 
     i = [0, 0, 0]
     i[RED] = int(a[RED] + d[RED] + s[RED])
@@ -58,7 +58,7 @@ def calculate_diffuse(lights, reflect, normal):
         d[BLUE] += light[COLOR][BLUE] * reflect['blue'][DIFFUSE] * dot
     return d
 
-def calculate_specular(lights, reflect, view, normal):
+def calculate_specular(lights, reflect, view, normal, exp=SPECULAR_EXP):
     s = [0, 0, 0]
     n = [0, 0, 0]
 
@@ -70,7 +70,7 @@ def calculate_specular(lights, reflect, view, normal):
 
         result = dot_product(n, view)
         result = result if result > 0 else 0
-        result = pow( result, SPECULAR_EXP )
+        result = pow( result, exp )
 
         s[RED] += light[COLOR][RED] * reflect['red'][SPECULAR] * result
         s[GREEN] += light[COLOR][GREEN] * reflect['green'][SPECULAR] * result

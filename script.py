@@ -224,11 +224,15 @@ def run(filename):
                                         symbols[m_name][1]['red'][2] = float(coeffs[0])
                                         symbols[m_name][1]['green'][2] = float(coeffs[1])
                                         symbols[m_name][1]['blue'][2] = float(coeffs[2])
-                                    # TODO: Add specular coefficient option in gmath.py
                                     elif len(m_line) >= 4 and m_line[:2] == 'Ns':  
-                                        symbols[m_name][1]['spec_coeff'] = float(m_line[3:])                
+                                        symbols[m_name][1]['spec_exp'] = float(m_line[3:])                
                         elif line[:2] == 'v ':
                             vertexList.append([float(coord) for coord in line[2:].split()])
+                print("Symbol table after importing the MTL file:")
+                print(symbols)
+                print()
+                print("Press any key to continue...")
+                input()
                 with open(filename) as file:
                     for i, line in enumerate(file):
                         line = line.rstrip()
