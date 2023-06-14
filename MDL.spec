@@ -128,6 +128,7 @@ camera eye - establishes a camera with eye at position (x, y, z)
 
 rotcam x|y|z degrees - rotate the camera. Default aim is (0, 0, 1)
 
+supersampling resolution - sets supersampling to resolution
 
 save filename		- save the image in its current state under
 			  the name "filename."

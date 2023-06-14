@@ -39,7 +39,8 @@ tokens = (
     "SCREEN",
     "WEB",
     "CO",
-    "ROTCAM"
+    "ROTCAM",
+    "SUPERSAMPLING",
 )
 
 reserved = {
@@ -81,7 +82,8 @@ reserved = {
     "focal" : "FOCAL",
     "display" : "DISPLAY",
     "web" : "WEB",
-    "rotcam": "ROTCAM"
+    "rotcam": "ROTCAM",
+    "supersampling": "SUPERSAMPLING"
 }
 
 t_ignore = " \t"
@@ -363,6 +365,11 @@ def p_command_mesh(p):
     if len(p) == arg_start + 2:
         cmd['cs'] = p[arg_start + 1]
     commands.append(cmd)
+
+def p_command_supersampling(p):
+    """command : SUPERSAMPLING NUMBER"""
+    symbols[p[1]] = ['supersamplng', {'resolution': int(p[2])} ]
+    commands.append({'op':p[1], 'args':None})
 
 def p_save_knobs(p):
     "command : SAVE_KNOBS SYMBOL"

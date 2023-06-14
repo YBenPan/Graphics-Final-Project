@@ -39,7 +39,7 @@ def run(filename):
     normalMap = {}
 
     stack = [ [x[:] for x in tmp] ]
-    supersample = 1
+    supersample = symbols['supersampling'][1]['resolution'] if 'supersampling' in symbols else 1
     screen = new_screen(500*supersample, 500*supersample)
     zbuffer = new_zbuffer(500*supersample, 500*supersample)
     reduced_screen = [[0 for x in range(500)] for y in range(500)]
