@@ -238,19 +238,24 @@ def run(filename):
                         line = line.rstrip()
                         if len(line) >= 6 and line[:6] == 'usemtl':
                             if len(faceList) > 0:
-                                print(f"Done: {reflect}")
                                 add_mesh(tmp, vertexList, faceList)
                                 matrix_mult( viewing_transform, tmp)
                                 matrix_mult( stack[-1], tmp )
+                                # print("ADD MESH DONE")
                                 draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
+                                print(f"Done: {reflect}")
                                 faceList = []
+                                tmp = []
+                                normalMap = {}
                             mtl_name = line[7:]
                             reflect = mtl_name
                         elif line[:2] == 'f ':
                             vertices = line[2:].split()
                             v_indices = [int(str.split('/')[0]) for str in vertices]
                             for j in range(1, len(v_indices) - 1):
-                                faceList.append([v_indices[0] - 1, v_indices[j] - 1, v_indices[j + 1] - 1])                            
+                                faceList.append([v_indices[0] - 1, v_indices[j] - 1, v_indices[j + 1] - 1])    
+                        # if i % 100 == 0:
+                        #     print(i, line)
                 add_mesh(tmp, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
