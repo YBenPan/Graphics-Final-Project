@@ -195,19 +195,65 @@ def run(filename):
                 with open(filename) as file:
                     for i, line in enumerate(file):
                         line = line.rstrip()
-                        if line[:2] == 'v ':
+                        if len(line) >= 6 and line[:6] == 'mtllib':
+                            # Import associated MTL file
+                            mtl_filename = line[7:]
+                            with open(mtl_filename) as mtl_file:
+                                m_name = ''
+                                for j, m_line in enumerate(mtl_file):
+                                    m_line = m_line.strip()
+                                    if len(m_line) >= 6 and m_line[:6] == 'newmtl':
+                                        m_name = m_line[7:]
+                                        symbols[m_name] = ['constants', 
+                                                           {'red' : [0.2, 0.5, 0.5], 
+                                                            'green' : [0.2, 0.5, 0.5], 
+                                                            'blue' : [0.2, 0.5, 0.5],
+                                                            'spec_coeff': SPECULAR_EXP}]
+                                    elif len(m_line) >= 4 and m_line[:2] == 'Ka':
+                                        coeffs = m_line[3:].split()
+                                        symbols[m_name][1]['red'][0] = float(coeffs[0])
+                                        symbols[m_name][1]['green'][0] = float(coeffs[1])
+                                        symbols[m_name][1]['blue'][0] = float(coeffs[2])
+                                    elif len(m_line) >= 4 and m_line[:2] == 'Kd':
+                                        coeffs = m_line[3:].split()
+                                        symbols[m_name][1]['red'][1] = float(coeffs[0])
+                                        symbols[m_name][1]['green'][1] = float(coeffs[1])
+                                        symbols[m_name][1]['blue'][1] = float(coeffs[2])
+                                    elif len(m_line) >= 4 and m_line[:2] == 'Ks':
+                                        coeffs = m_line[3:].split()
+                                        symbols[m_name][1]['red'][2] = float(coeffs[0])
+                                        symbols[m_name][1]['green'][2] = float(coeffs[1])
+                                        symbols[m_name][1]['blue'][2] = float(coeffs[2])
+                                    # TODO: Add specular coefficient option in gmath.py
+                                    elif len(m_line) >= 4 and m_line[:2] == 'Ns':  
+                                        symbols[m_name][1]['spec_coeff'] = float(m_line[3:])                
+                        elif line[:2] == 'v ':
                             vertexList.append([float(coord) for coord in line[2:].split()])
+                with open(filename) as file:
+                    for i, line in enumerate(file):
+                        line = line.rstrip()
+                        if len(line) >= 6 and line[:6] == 'usemtl':
+                            if len(faceList) > 0:
+                                print(f"Done: {reflect}")
+                                add_mesh(tmp, vertexList, faceList)
+                                matrix_mult( viewing_transform, tmp)
+                                matrix_mult( stack[-1], tmp )
+                                draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
+                                faceList = []
+                            mtl_name = line[7:]
+                            reflect = mtl_name
                         elif line[:2] == 'f ':
                             vertices = line[2:].split()
                             v_indices = [int(str.split('/')[0]) for str in vertices]
                             for j in range(1, len(v_indices) - 1):
-                                faceList.append([v_indices[0] - 1, v_indices[j] - 1, v_indices[j + 1] - 1])
+                                faceList.append([v_indices[0] - 1, v_indices[j] - 1, v_indices[j + 1] - 1])                            
                 add_mesh(tmp, vertexList, faceList)
                 matrix_mult( viewing_transform, tmp)
                 matrix_mult( stack[-1], tmp )
                 draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
                 tmp = []
                 normalMap = {}
+                reflect = '.white'
             elif c == 'line':
                 add_edge(tmp,
                          args[0], args[1], args[2], args[3], args[4], args[5])
