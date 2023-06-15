@@ -58,7 +58,6 @@ MISC
 //			- comment
 save_coord_system name
 camera eyex eyey eyez
-rotcam x|y|z degrees
 supersampling resolution
 save filename
 gereate_rayfiles

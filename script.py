@@ -70,9 +70,9 @@ def run(filename):
     basename = False
     vary = False
 
-    print("All symbols:")
-    print(symbols)
-    print()
+    # print("All symbols:")
+    # print(symbols)
+    # print()
     # print("Press any key to continue...")
     # input()
 

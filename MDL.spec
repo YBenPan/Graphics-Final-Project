@@ -121,12 +121,7 @@ save_coord_system name
 			- Makes a copy of the top of the stack and 
 			  saves it in the symbol table under "name."
 
-// camera eye aim		- establishes a camera. Eye and aim are
-//			  x y z triples.
-
 camera eye - establishes a camera with eye at position (x, y, z)
-
-rotcam x|y|z degrees - rotate the camera. Default aim is (0, 0, 1)
 
 supersampling resolution - sets supersampling to resolution
 
