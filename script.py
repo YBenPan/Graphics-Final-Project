@@ -90,6 +90,10 @@ def run(filename):
         elif c == 'basename':
             basename = args[0]
 
+        elif c == 'background':
+            background_colors = args[:]
+            screen = new_screen(500*supersample, 500*supersample, background_colors)
+
     if vary and not frames:
         print("MDL Compiler Error")
         return
@@ -126,7 +130,7 @@ def run(filename):
             knobs = knoblist[fr]
             for knob in knobs.keys():
                 symbols[knob] = ['knob', knobs[knob]]
-        clear_screen( screen )
+        clear_screen( screen, background_colors )
         clear_zbuffer( zbuffer )
         reduced_screen = [[0 for x in range(500)] for y in range(500)]
         tmp = []

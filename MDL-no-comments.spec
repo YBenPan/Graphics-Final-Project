@@ -57,6 +57,7 @@ MISC
 ----
 //			- comment
 save_coord_system name
+background r1 g1 b1 [r1] [g1] [b1]
 camera eyex eyey eyez
 supersampling resolution
 save filename

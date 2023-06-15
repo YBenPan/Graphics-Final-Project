@@ -121,6 +121,9 @@ save_coord_system name
 			- Makes a copy of the top of the stack and 
 			  saves it in the symbol table under "name."
 
+background r1 g1 b1 [r2] [g2] [b2] - sets background color to (r1,g1,b1) or
+								a gradient from (r1,g1,b1) to (r2,g2,b2)
+
 camera eye - establishes a camera with eye at position (x, y, z)
 
 supersampling resolution - sets supersampling to resolution

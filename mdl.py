@@ -41,6 +41,7 @@ tokens = (
     "CO",
     "ROTCAM",
     "SUPERSAMPLING",
+    "BACKGROUND",
 )
 
 reserved = {
@@ -83,7 +84,8 @@ reserved = {
     "display" : "DISPLAY",
     "web" : "WEB",
     "rotcam": "ROTCAM",
-    "supersampling": "SUPERSAMPLING"
+    "supersampling": "SUPERSAMPLING",
+    "background": "BACKGROUND",
 }
 
 t_ignore = " \t"
@@ -370,6 +372,12 @@ def p_command_supersampling(p):
     """command : SUPERSAMPLING NUMBER"""
     symbols[p[1]] = ['supersamplng', {'resolution': int(p[2])} ]
     commands.append({'op':p[1], 'args':None})
+
+def p_command_background(p):
+    """command : BACKGROUND NUMBER NUMBER NUMBER
+               | BACKGROUND NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER"""
+    cmd = {'op': p[1], 'args': p[2:]}
+    commands.append(cmd)
 
 def p_save_knobs(p):
     "command : SAVE_KNOBS SYMBOL"
