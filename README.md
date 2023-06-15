@@ -13,7 +13,7 @@
 
 ## Features
 - [X] Animation
-- [X] Import mesh from OBJ files with MDL file integration
+- [X] Import mesh from OBJ files with MTL file integration
 - [X] Phong shading model
 - [X] Supersampling/Anti-Aliasing
 
