@@ -10,6 +10,7 @@
 - [X] light
 - [X] ambient
 - [X] supersampling (custom command - takes one integer argument for the scale of supersampling)
+- [X] background
 
 ## Features
 - [X] Animation

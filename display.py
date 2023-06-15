@@ -11,9 +11,7 @@ RED = 0
 GREEN = 1
 BLUE = 2
 
-DEFAULT_COLOR = [255, 255, 255]
-# START_COLOR = [44, 103, 242]
-# END_COLOR = [98, 207, 244]
+DEFAULT_COLOR = [0, 0, 0]
 
 def new_screen( width = XRES, height = YRES, colors = DEFAULT_COLOR ):
     screen = []
@@ -53,7 +51,7 @@ def clear_screen( screen, colors=DEFAULT_COLOR ):
                 END_COLOR = colors[3:6]
                 screen[y][x] = [ int(START_COLOR[i] + (END_COLOR[i] - START_COLOR[i]) * y / len(screen)) for i in range(3)]
             else:
-                screen[y].append(DEFAULT_COLOR)
+                screen[y][x] = DEFAULT_COLOR
 
 def clear_zbuffer( zb ):
     for y in range( len(zb) ):

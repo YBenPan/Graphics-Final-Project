@@ -16,19 +16,6 @@ def run(filename):
         print("Parsing failed.")
         return
 
-    # view = [0,
-    #         0,
-    #         1]
-    # ambient = [50,
-    #            50,
-    #            50]
-    # light = [[0.5,
-    #           0.75,
-    #           1],
-    #          [255,
-    #           255,
-    #           255]]
-
     # Create animation folder
     os.makedirs("gif", exist_ok=True)
 
@@ -38,16 +25,15 @@ def run(filename):
     ident( tmp )
     normalMap = {}
 
+    # Settings
     stack = [ [x[:] for x in tmp] ]
     supersample = symbols['supersampling'][1]['resolution'] if 'supersampling' in symbols else 1
     screen = new_screen(500*supersample, 500*supersample)
     zbuffer = new_zbuffer(500*supersample, 500*supersample)
     reduced_screen = [[0 for x in range(500)] for y in range(500)]
+    background_colors = DEFAULT_COLOR
     tmp = []
     step_3d = 100
-    consts = ''
-    coords = []
-    coords1 = []
     symbols['.white'] = ['constants',
                          {'red': [0.2, 0.5, 0.5],
                           'green': [0.2, 0.5, 0.5],
@@ -60,7 +46,6 @@ def run(filename):
         lights.append([[0.5, 0.75, 1], [255, 255, 255]])
     for light in lights:
         normalize(light[LOCATION])
-    # print(lights)
 
     # Set ambient light
     ambient = symbols['ambient'][1:] if 'ambient' in symbols else [50, 50, 50]
@@ -69,12 +54,6 @@ def run(filename):
     frames = False
     basename = False
     vary = False
-
-    # print("All symbols:")
-    # print(symbols)
-    # print()
-    # print("Press any key to continue...")
-    # input()
 
     # Pass 0
     for command in commands:
@@ -141,20 +120,15 @@ def run(filename):
         ident(viewing_transform)
         stack = [[x[:] for x in viewing_transform]]
         if 'camera' in symbols:
-            # TODO: Fix rotate camera. Rotate camera first then translate
             if 'eye' in symbols['camera'][1]:
                 # Translate camera by taking the inverse of transformation in the model scene
                 eye_x, eye_y, eye_z = symbols['camera'][1]['eye']
                 camera_trans = make_translate(-eye_x, -eye_y, -eye_z)
                 matrix_mult(camera_trans, viewing_transform)
-            # if 'aim' in symbols['camera'][1]:
-            #     view = symbols['camera'][1]['aim']
-            #     normalize(view)
 
         for command in commands:
             c = command['op']
             args = command['args']
-            # print(f"Processing: {c}")
 
             if c == 'box':
                 if command['constants']:
@@ -232,11 +206,7 @@ def run(filename):
                                         symbols[m_name][1]['spec_exp'] = float(m_line[3:])
                         elif line[:2] == 'v ':
                             vertexList.append([float(coord) for coord in line[2:].split()])
-                # print("Symbol table after importing the MTL file:")
-                # print(symbols)
-                # print()
-                # print("Press any key to continue...")
-                # input()
+
                 with open(filename) as file:
                     for i, line in enumerate(file):
                         line = line.rstrip()
@@ -245,9 +215,7 @@ def run(filename):
                                 add_mesh(tmp, vertexList, faceList)
                                 matrix_mult( viewing_transform, tmp)
                                 matrix_mult( stack[-1], tmp )
-                                # print("ADD MESH DONE")
                                 draw_polygons(tmp, normalMap, screen, zbuffer, reduced_screen, view, ambient, lights, symbols, reflect, supersample)
-                                #print(f"Done: {reflect}")
                                 faceList = []
                                 tmp = []
                                 normalMap = {}
@@ -311,8 +279,6 @@ def run(filename):
                 matrix_mult(tmp_view, view)
                 matrix_mult(viewing_transform, tmp)
                 viewing_transform = [x[:] for x in tmp]
-                # print("Viewing Transform:", viewing_transform)
-                # input()
                 tmp = []
             elif c == 'push':
                 stack.append([x[:] for x in stack[-1]] )

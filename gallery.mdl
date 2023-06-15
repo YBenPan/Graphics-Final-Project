@@ -1,6 +1,7 @@
 constants shiny_purple 0.3 0.2 0.8 0.3 0 0 0.3 0.2 0.8
 constants shiny_teal 0.3 0.0 0.0 0.3 0.2 0.8 0.3 0.2 0.8
 constants dull_yellow 0.3 0.8 0.2 0.3 0.8 0.2 0 0 0
+background 44 103 242 98 207 244
 supersampling 1
 camera 0 0 0
 ambient 50 50 50
