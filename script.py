@@ -150,7 +150,7 @@ def run(filename):
         for command in commands:
             c = command['op']
             args = command['args']
-            print(f"Processing: {c}")
+            # print(f"Processing: {c}")
 
             if c == 'box':
                 if command['constants']:
@@ -328,6 +328,7 @@ def run(filename):
                 save_extension(save_screen, 'gif/' + basename + ('%d.png' % fr).zfill(8))
             else:
                 save_extension(screen, 'gif/' + basename + ('%d.png' % fr).zfill(8))
+            print('finished frame ' + str(fr))
         else:
             save_extension(screen, 'image.png')
     if frames > 1:

@@ -1,3 +1,6 @@
+gallery: gallery.mdl main.py matrix.py mdl.py display.py draw.py gmath.py
+	python3 main.py gallery.mdl
+
 test: face.mdl main.py matrix.py mdl.py display.py draw.py gmath.py
 	python3 main.py face.mdl
 
@@ -6,9 +9,6 @@ bear: bear.mdl main.py matrix.py mdl.py display.py draw.py gmath.py
 
 hotdog: hotdog.mdl main.py matrix.py mdl.py display.py draw.py gmath.py
 	python3 main.py hotdog.mdl
-
-gallery: gallery.mdl main.py matrix.py mdl.py display.py draw.py gmath.py
-	python3 main.py gallery.mdl
 
 clean:
 	rm *pyc *out parsetab.py

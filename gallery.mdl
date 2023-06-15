@@ -1,12 +1,12 @@
 constants shiny_purple 0.3 0.2 0.8 0.3 0 0 0.3 0.2 0.8
 constants shiny_teal 0.3 0.0 0.0 0.3 0.2 0.8 0.3 0.2 0.8
 constants dull_yellow 0.3 0.8 0.2 0.3 0.8 0.2 0 0 0
-supersampling 2
+supersampling 1
 camera 0 0 0
 ambient 50 50 50
 light light1 1 0.5 1 252 248 169
 basename airplanes_real
-frames 50
+frames 20
 push
 move 250 -20 0
 scale 100 120 100
@@ -17,7 +17,7 @@ move 100 350 400
 scale 0.1 0.1 1
 move 1500 0 0
 rotate y 360 knobby
-vary knobby 0 50 0 1
+vary knobby 0 20 0 1
 move -1500 0 0
 rotate z -50
 rotate y 90
