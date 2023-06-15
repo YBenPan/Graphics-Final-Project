@@ -97,7 +97,7 @@ def display( screen ):
     img.show()
 
 def convert_to_gif( basename, gif ):
-    os.system("magick -delay 10 %s* %s" % (basename, gif))
+    os.system("magick +dither -delay 10 %s* %s" % (basename, gif))
 
 def show_gif( gif ):
     os.system("open %s" % gif)
