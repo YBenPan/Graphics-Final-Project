@@ -22,3 +22,6 @@ Note: To produce our gif for the gallery we used 50 frames and a supersampling s
 of 2, but the mdl file provided for the "make" command will create 20 frames
 with a supersampling scale of 1 (no anti-aliasing) in order to run faster. These values
 can be adjusted in the file 'gallery.mdl'.
+
+## Sample Image
+![sample](https://github.com/YBenPan/Graphics-Final-Project/assets/25336089/831ebbae-d924-4e06-bbbe-595e611a1e65)
